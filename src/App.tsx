@@ -7,6 +7,7 @@ import Sidebar, {
 
 import Home from './components/pages/Home'
 import Theory from './components/pages/Theory'
+import AutomataBuilder from './components/pages/AutomataBuilder'
 
 import './App.css'
 
@@ -31,6 +32,9 @@ function App() {
 
       case 'teoria':
         return <Theory />
+
+      case 'crear':
+        return <AutomataBuilder />
 
       default:
         return (
