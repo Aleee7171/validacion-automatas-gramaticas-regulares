@@ -63,13 +63,6 @@ type VisualTransition = {
    POSICIONES DE LOS PUERTOS
 ======================================== */
 
-/*
- * Cada lado del estado tiene 5 puntos
- * diferentes de conexión.
- *
- * Esto evita que todas las flechas
- * salgan exactamente del mismo lugar.
- */
 const HANDLE_POSITIONS = [
   18,
   34,
@@ -235,12 +228,10 @@ function AutomataEdge({
   let labelX = 0
   let labelY = 0
 
-  /*
-   * BUCLE
-   *
-   * Construimos manualmente una curva
-   * que sale y vuelve al mismo estado.
-   */
+  /* ======================================
+     BUCLE
+  ====================================== */
+
   if (isLoop) {
     const height = 75
 
@@ -337,7 +328,7 @@ const edgeTypes = {
 }
 
 /* ========================================
-   DISTRIBUCIÓN DAGRE
+   DISTRIBUCIÓN AUTOMÁTICA CON DAGRE
 ======================================== */
 
 function createLayout(
@@ -376,8 +367,8 @@ function createLayout(
   })
 
   /*
-   * Los bucles no afectan
-   * la distribución.
+   * Los bucles no modifican
+   * la organización del grafo.
    */
   transitions.forEach(
     (transition) => {
@@ -468,7 +459,7 @@ function getSides(
     source.y
 
   /*
-   * Predomina la dirección horizontal.
+   * Dirección principalmente horizontal.
    */
   if (
     Math.abs(dx) >=
@@ -494,7 +485,7 @@ function getSides(
   }
 
   /*
-   * Predomina la dirección vertical.
+   * Dirección principalmente vertical.
    */
   if (dy >= 0) {
     return {
@@ -516,7 +507,7 @@ function getSides(
 }
 
 /* ========================================
-   DISTRIBUIR PUNTOS
+   DISTRIBUIR PUNTOS DE CONEXIÓN
 ======================================== */
 
 function getSlot(
@@ -549,7 +540,7 @@ function getSlot(
 }
 
 /* ========================================
-   COMPONENTE
+   COMPONENTE PRINCIPAL
 ======================================== */
 
 function AutomataPreview() {
@@ -564,43 +555,131 @@ function AutomataPreview() {
      NODOS
   ====================================== */
 
-  const layoutedNodes =
-    useMemo(
-      () =>
-        createLayout(
-          states,
-          initialState,
-          finalStates,
-          transitions
-        ),
-      [
-        states,
-        initialState,
-        finalStates,
-        transitions,
-      ]
-    )
-
   const [
     nodes,
     setNodes,
     onNodesChange,
   ] =
     useNodesState<StateNode>(
-      layoutedNodes
+      []
     )
 
+  /*
+   * Mantiene las posiciones colocadas
+   * manualmente por el usuario.
+   *
+   * Solo crea posición para estados nuevos.
+   */
   useEffect(() => {
     setNodes(
-      layoutedNodes
+      (currentNodes) =>
+        states.map(
+          (state, index) => {
+            const existingNode =
+              currentNodes.find(
+                (node) =>
+                  node.id ===
+                  state
+              )
+
+            /*
+             * Si ya existe,
+             * conserva su posición.
+             */
+            if (existingNode) {
+              return {
+                ...existingNode,
+
+                data: {
+                  label:
+                    state,
+
+                  isInitial:
+                    initialState ===
+                    state,
+
+                  isFinal:
+                    finalStates.includes(
+                      state
+                    ),
+                },
+              }
+            }
+
+            /*
+             * Estado nuevo.
+             *
+             * Se coloca inicialmente
+             * en una cuadrícula sencilla.
+             */
+            const column =
+              index % 4
+
+            const row =
+              Math.floor(
+                index / 4
+              )
+
+            return {
+              id: state,
+
+              type: 'state',
+
+              position: {
+                x:
+                  100 +
+                  column * 180,
+
+                y:
+                  100 +
+                  row * 150,
+              },
+
+              data: {
+                label:
+                  state,
+
+                isInitial:
+                  initialState ===
+                  state,
+
+                isFinal:
+                  finalStates.includes(
+                    state
+                  ),
+              },
+            }
+          }
+        )
     )
   }, [
-    layoutedNodes,
+    states,
+    initialState,
+    finalStates,
     setNodes,
   ])
 
   /* ======================================
-     POSICIONES
+     REORGANIZAR
+  ====================================== */
+
+  const handleReorganize =
+    () => {
+      const organizedNodes =
+        createLayout(
+          states,
+          initialState,
+          finalStates,
+          transitions
+        )
+
+      setNodes(
+        organizedNodes
+      )
+    }
+
+  /* ======================================
+     POSICIONES ACTUALES
   ====================================== */
 
   const positionMap =
@@ -622,7 +701,10 @@ function AutomataPreview() {
       () =>
         new Map(
           states.map(
-            (state, index) => [
+            (
+              state,
+              index
+            ) => [
               state,
               index,
             ]
@@ -632,7 +714,7 @@ function AutomataPreview() {
     )
 
   /* ======================================
-     AGRUPAR SÍMBOLOS
+     AGRUPAR TRANSICIONES
   ====================================== */
 
   const groupedTransitions =
@@ -682,7 +764,7 @@ function AutomataPreview() {
     }, [transitions])
 
   /* ======================================
-     CALCULAR PUERTOS
+     CALCULAR CONEXIONES VISUALES
   ====================================== */
 
   const visualTransitions =
@@ -692,8 +774,8 @@ function AutomataPreview() {
         []
 
       /*
-       * Primero obtenemos los lados
-       * generales.
+       * Primero determinamos
+       * los lados generales.
        */
       Array.from(
         groupedTransitions.values()
@@ -705,6 +787,10 @@ function AutomataPreview() {
           const isLoop =
             transition.from ===
             transition.to
+
+          /* ==============================
+             BUCLE
+          ============================== */
 
           if (isLoop) {
             result.push({
@@ -718,11 +804,8 @@ function AutomataPreview() {
               targetSide:
                 'top',
 
-              /*
-               * Sale por la derecha
-               * y vuelve por la izquierda.
-               */
               sourceSlot: 4,
+
               targetSlot: 0,
 
               isLoop: true,
@@ -756,13 +839,10 @@ function AutomataPreview() {
               reverseKey
             )
 
-          /*
-           * IDA Y VUELTA
-           *
-           * Usamos lados diferentes
-           * para que las flechas no
-           * se monten.
-           */
+          /* ==============================
+             TRANSICIONES DE IDA Y VUELTA
+          ============================== */
+
           if (hasReverse) {
             const dx =
               target.x -
@@ -787,8 +867,8 @@ function AutomataPreview() {
               toOrder
 
             /*
-             * Estados horizontalmente
-             * separados.
+             * Estados principalmente
+             * uno al lado del otro.
              */
             if (
               Math.abs(dx) >=
@@ -810,6 +890,7 @@ function AutomataPreview() {
                     : 'bottom',
 
                 sourceSlot: 3,
+
                 targetSlot: 1,
 
                 isLoop: false,
@@ -819,8 +900,8 @@ function AutomataPreview() {
             }
 
             /*
-             * Estados verticalmente
-             * separados.
+             * Estados principalmente
+             * uno encima del otro.
              */
             result.push({
               key,
@@ -838,6 +919,7 @@ function AutomataPreview() {
                   : 'left',
 
               sourceSlot: 3,
+
               targetSlot: 1,
 
               isLoop: false,
@@ -845,6 +927,10 @@ function AutomataPreview() {
 
             return
           }
+
+          /* ==============================
+             TRANSICIÓN NORMAL
+          ============================== */
 
           const sides =
             getSides(
@@ -860,6 +946,7 @@ function AutomataPreview() {
             ...sides,
 
             sourceSlot: 2,
+
             targetSlot: 2,
 
             isLoop: false,
@@ -868,7 +955,7 @@ function AutomataPreview() {
       )
 
       /* ==================================
-         SEPARAR SALIDAS DEL MISMO LADO
+         SEPARAR SALIDAS
       ================================== */
 
       const outgoing =
@@ -889,8 +976,9 @@ function AutomataPreview() {
             `${transition.from}:${transition.sourceSide}`
 
           const group =
-            outgoing.get(key) ??
-            []
+            outgoing.get(
+              key
+            ) ?? []
 
           group.push(
             transition
@@ -959,7 +1047,7 @@ function AutomataPreview() {
       )
 
       /* ==================================
-         SEPARAR ENTRADAS DEL MISMO LADO
+         SEPARAR ENTRADAS
       ================================== */
 
       const incoming =
@@ -980,8 +1068,9 @@ function AutomataPreview() {
             `${transition.to}:${transition.targetSide}`
 
           const group =
-            incoming.get(key) ??
-            []
+            incoming.get(
+              key
+            ) ?? []
 
           group.push(
             transition
@@ -1057,7 +1146,7 @@ function AutomataPreview() {
     ])
 
   /* ======================================
-     EDGES
+     CREAR EDGES
   ====================================== */
 
   const edges: Edge[] =
@@ -1083,7 +1172,8 @@ function AutomataPreview() {
             targetHandle:
               `target-${transition.targetSide}-${transition.targetSlot}`,
 
-            type: 'automata',
+            type:
+              'automata',
 
             label:
               transition.symbols.join(
@@ -1095,6 +1185,7 @@ function AutomataPreview() {
                 MarkerType.ArrowClosed,
 
               width: 18,
+
               height: 18,
             },
 
@@ -1129,54 +1220,73 @@ function AutomataPreview() {
   ====================================== */
 
   return (
-    <div className="automata-preview-container">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
+    <div className="automata-preview-wrapper">
+      <div className="automata-preview-toolbar">
+        <span>
+          Puedes mover los estados para ajustar la representación.
+        </span>
 
-        nodeTypes={
-          nodeTypes
-        }
+        <button
+          type="button"
+          onClick={
+            handleReorganize
+          }
+        >
+          Reorganizar
+        </button>
+      </div>
 
-        edgeTypes={
-          edgeTypes
-        }
+      <div className="automata-preview-container">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
 
-        onNodesChange={
-          onNodesChange
-        }
+          nodeTypes={
+            nodeTypes
+          }
 
-        nodesDraggable
+          edgeTypes={
+            edgeTypes
+          }
 
-        nodesConnectable={
-          false
-        }
+          onNodesChange={
+            onNodesChange
+          }
 
-        elementsSelectable
+          nodesDraggable
 
-        fitView
-
-        fitViewOptions={{
-          padding: 0.25,
-        }}
-
-        minZoom={0.3}
-        maxZoom={1.8}
-
-        panOnDrag
-        zoomOnScroll
-      >
-        <Background
-          gap={20}
-          size={1}
-        />
-
-        <Controls
-          showInteractive={
+          nodesConnectable={
             false
           }
-        />
-      </ReactFlow>
+
+          elementsSelectable
+
+          fitView
+
+          fitViewOptions={{
+            padding: 0.25,
+          }}
+
+          minZoom={0.3}
+
+          maxZoom={1.8}
+
+          panOnDrag
+
+          zoomOnScroll
+        >
+          <Background
+            gap={20}
+            size={1}
+          />
+
+          <Controls
+            showInteractive={
+              false
+            }
+          />
+        </ReactFlow>
+      </div>
     </div>
   )
 }
