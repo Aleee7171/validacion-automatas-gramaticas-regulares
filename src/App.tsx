@@ -8,6 +8,7 @@ import Sidebar, {
 import Home from './components/pages/Home'
 import Theory from './components/pages/Theory'
 import AutomataBuilder from './components/pages/AutomataBuilder'
+import StringValidator from './components/pages/StringValidator'
 
 import './App.css'
 
@@ -34,7 +35,21 @@ function App() {
         return <Theory />
 
       case 'crear':
-        return <AutomataBuilder />
+        return (
+          <AutomataBuilder
+            onContinue={() =>
+              setActiveSection('validar')
+            }
+          />
+        )
+        case 'validar':
+      return (
+        <StringValidator
+          onEditAutomata={() =>
+            setActiveSection('crear')
+          }
+        />
+      )
 
       default:
         return (

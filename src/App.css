@@ -2341,3 +2341,716 @@
 .automata-preview-toolbar button:hover {
   background: #f4f7fa;
 }
+
+/* =========================================
+   CONTINUAR AL SIGUIENTE MÓDULO
+========================================= */
+
+.automata-continue-section {
+  margin-top: 22px;
+  padding: 18px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  border: 1px solid #dce2e9;
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+.automata-continue-section h3 {
+  margin: 0 0 5px;
+
+  color: #173f73;
+
+  font-size: 14px;
+}
+
+.automata-continue-section p {
+  margin: 0;
+
+  color: #687385;
+
+  font-size: 12px;
+}
+
+.automata-continue-section
+.automata-continue-error {
+  margin-top: 7px;
+
+  color: #b42318;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.automata-continue-button {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 16px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #214f86;
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.automata-continue-button:hover {
+  background: #173f73;
+}
+
+.automata-continue-button span {
+  font-size: 17px;
+}
+
+/* =========================================
+   MÓDULO: PROBAR CADENAS
+========================================= */
+
+.string-validator {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.string-validator-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.string-validator-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #214f86;
+  color: #ffffff;
+}
+
+.string-validator-heading h1 {
+  margin: 0;
+
+  color: #173f73;
+
+  font-size: 20px;
+}
+
+.string-validator-heading p {
+  margin: 3px 0 0;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+/* =========================================
+   RESUMEN DEL AUTÓMATA
+========================================= */
+
+.validator-automata-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 10px;
+
+  padding: 14px;
+
+  border: 1px solid #dde2e8;
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+.validator-automata-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  padding: 10px 12px;
+
+  border-radius: 8px;
+
+  background: #f5f2ec;
+}
+
+.validator-automata-summary span {
+  color: #7a8492;
+
+  font-size: 10px;
+}
+
+.validator-automata-summary strong {
+  color: #173f73;
+
+  font-size: 12px;
+
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   TARJETAS
+========================================= */
+
+.validator-card {
+  padding: 20px;
+
+  border: 1px solid #dde2e8;
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+.validator-card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin-bottom: 18px;
+}
+
+.validator-card-title > span {
+  min-width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background: #214f86;
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.validator-card-title h2 {
+  margin: 0;
+
+  color: #173f73;
+
+  font-size: 15px;
+}
+
+.validator-card-title p {
+  margin: 3px 0 0;
+
+  color: #707887;
+
+  font-size: 11px;
+}
+
+/* =========================================
+   INGRESO DE CADENA
+========================================= */
+
+.validator-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.validator-input-section label {
+  color: #173f73;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.validator-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.validator-input-row input {
+  flex: 1;
+
+  min-height: 39px;
+
+  padding: 0 12px;
+
+  border: 1px solid #cfd7e1;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #25364b;
+
+  font-size: 12px;
+
+  outline: none;
+}
+
+.validator-input-row input:focus {
+  border-color: #214f86;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(33, 79, 134, 0.08);
+}
+
+/* =========================================
+   BOTONES DE VALIDACIÓN
+========================================= */
+
+.validate-string-button,
+.simulate-string-button {
+  min-height: 39px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 0 13px;
+
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.validate-string-button {
+  border: none;
+
+  background: #214f86;
+  color: #ffffff;
+}
+
+.validate-string-button:hover {
+  background: #173f73;
+}
+
+.simulate-string-button {
+  border: 1px solid #214f86;
+
+  background: #ffffff;
+  color: #214f86;
+}
+
+.simulate-string-button:hover {
+  background: #f3f7fb;
+}
+
+.reset-string-button {
+  width: 39px;
+  height: 39px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #d6dce4;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #5c6777;
+
+  cursor: pointer;
+}
+
+.reset-string-button:hover {
+  background: #f5f6f7;
+}
+
+/* =========================================
+   AYUDA Y EJEMPLOS
+========================================= */
+
+.validator-input-help {
+  margin: 0;
+
+  color: #7a8492;
+
+  font-size: 10px;
+}
+
+.validator-examples {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  margin-top: 3px;
+}
+
+.validator-examples > span {
+  color: #6c7480;
+
+  font-size: 10px;
+}
+
+.validator-examples button {
+  padding: 4px 8px;
+
+  border: 1px solid #d8dee6;
+  border-radius: 5px;
+
+  background: #ffffff;
+  color: #214f86;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.validator-examples button:hover {
+  background: #f3f7fb;
+}
+
+/* =========================================
+   RECORRIDO VACÍO
+========================================= */
+
+.validator-route-empty {
+  min-height: 95px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px dashed #ccd4df;
+  border-radius: 8px;
+
+  background: #fafbfc;
+
+  color: #7c8592;
+
+  font-size: 11px;
+}
+
+/* =========================================
+   SIMULACIÓN
+========================================= */
+
+.validator-simulation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 14px;
+  padding: 12px 14px;
+
+  border: 1px solid #d9e0e8;
+  border-radius: 8px;
+
+  background: #f7f9fb;
+}
+
+.simulation-current-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.simulation-current-state span {
+  color: #687385;
+
+  font-size: 10px;
+}
+
+.simulation-current-state strong {
+  min-width: 35px;
+  min-height: 35px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #214f86;
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  color: #173f73;
+
+  font-size: 11px;
+}
+
+.simulation-progress {
+  color: #214f86;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.simulation-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.simulation-controls button {
+  padding: 7px 10px;
+
+  border: 1px solid #d4dbe4;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #214f86;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.simulation-controls button:hover:not(:disabled) {
+  background: #f2f6fa;
+}
+
+.simulation-controls button:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+/* =========================================
+   TABLA DEL RECORRIDO
+========================================= */
+
+.validator-table-wrapper {
+  overflow-x: auto;
+
+  border: 1px solid #dbe1e8;
+  border-radius: 8px;
+}
+
+.validator-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.validator-table thead {
+  background: #214f86;
+}
+
+.validator-table th {
+  padding: 9px 12px;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  text-align: left;
+}
+
+.validator-table td {
+  padding: 10px 12px;
+
+  border-bottom: 1px solid #edf0f3;
+
+  color: #4f5b6c;
+
+  font-size: 10px;
+}
+
+.validator-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.validator-transition {
+  color: #173f73 !important;
+
+  font-weight: 600;
+}
+
+.validator-table-empty {
+  height: 70px;
+
+  text-align: center !important;
+
+  color: #7d8692 !important;
+}
+
+/* =========================================
+   RESULTADO
+========================================= */
+
+.validator-result {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 16px 18px;
+
+  border-radius: 10px;
+}
+
+.validator-result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.validator-result span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+}
+
+.validator-result h3 {
+  margin: 0 0 4px;
+
+  font-size: 14px;
+}
+
+.validator-result p {
+  margin: 0;
+
+  font-size: 11px;
+}
+
+/* ACEPTADA */
+
+.validator-result.accepted {
+  border: 1px solid #b7dfc6;
+
+  background: #effaf3;
+  color: #287642;
+}
+
+/* RECHAZADA */
+
+.validator-result.rejected {
+  border: 1px solid #efc0c0;
+
+  background: #fff3f3;
+  color: #a63838;
+}
+
+/* SÍMBOLO O TRANSICIÓN NO DEFINIDA */
+
+.validator-result.invalid-symbol,
+.validator-result.missing-transition {
+  border: 1px solid #eed9a7;
+
+  background: #fff9eb;
+  color: #946813;
+}
+
+/* =========================================
+   SIN AUTÓMATA
+========================================= */
+
+.validator-empty-card {
+  min-height: 180px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 22px;
+
+  border: 1px solid #e1e5ea;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: #8a6518;
+}
+
+.validator-empty-card > div {
+  flex: 1;
+}
+
+.validator-empty-card h2 {
+  margin: 0 0 5px;
+
+  color: #173f73;
+
+  font-size: 15px;
+}
+
+.validator-empty-card p {
+  margin: 0;
+
+  color: #717b89;
+
+  font-size: 11px;
+}
+
+.validator-empty-card button {
+  padding: 9px 13px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: #214f86;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+  .validator-automata-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .validator-input-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .validate-string-button,
+  .simulate-string-button {
+    width: 100%;
+  }
+
+  .reset-string-button {
+    width: 100%;
+  }
+
+  .validator-simulation {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,5 +1,7 @@
 import { useState } from 'react'
+
 import {
+  ArrowRight,
   Network,
   Plus,
   RotateCcw,
@@ -8,16 +10,66 @@ import {
 } from 'lucide-react'
 
 import { useAutomataStore } from '../../store/automataStore'
+
 import AutomataPreview from '../../features/automata-editor/components/AutomataPreview'
 
-function AutomataBuilder() {
-  const [stateInput, setStateInput] = useState('')
-  const [symbolInput, setSymbolInput] = useState('')
+/* ========================================
+   PROPIEDADES
+======================================== */
 
-  const [transitionFrom, setTransitionFrom] = useState('')
-  const [transitionSymbol, setTransitionSymbol] = useState('')
-  const [transitionTo, setTransitionTo] = useState('')
-  const [transitionError, setTransitionError] = useState('')
+type AutomataBuilderProps = {
+  onContinue: () => void
+}
+
+/* ========================================
+   COMPONENTE
+======================================== */
+
+function AutomataBuilder({
+  onContinue,
+}: AutomataBuilderProps) {
+  /* ======================================
+     CAMPOS
+  ====================================== */
+
+  const [
+    stateInput,
+    setStateInput,
+  ] = useState('')
+
+  const [
+    symbolInput,
+    setSymbolInput,
+  ] = useState('')
+
+  const [
+    transitionFrom,
+    setTransitionFrom,
+  ] = useState('')
+
+  const [
+    transitionSymbol,
+    setTransitionSymbol,
+  ] = useState('')
+
+  const [
+    transitionTo,
+    setTransitionTo,
+  ] = useState('')
+
+  const [
+    transitionError,
+    setTransitionError,
+  ] = useState('')
+
+  const [
+    continueError,
+    setContinueError,
+  ] = useState('')
+
+  /* ======================================
+     STORE DEL AUTÓMATA
+  ====================================== */
 
   const {
     states,
@@ -41,19 +93,35 @@ function AutomataBuilder() {
     resetAutomata,
   } = useAutomataStore()
 
-  const handleAddState = () => {
-    const value = stateInput.trim()
+  /* ======================================
+     AGREGAR ESTADO
+  ====================================== */
 
-    if (!value || states.includes(value)) {
+  const handleAddState = () => {
+    const value =
+      stateInput.trim()
+
+    if (
+      !value ||
+      states.includes(value)
+    ) {
       return
     }
 
     addState(value)
+
     setStateInput('')
+
+    setContinueError('')
   }
 
+  /* ======================================
+     AGREGAR SÍMBOLO
+  ====================================== */
+
   const handleAddSymbol = () => {
-    const value = symbolInput.trim()
+    const value =
+      symbolInput.trim()
 
     if (
       !value ||
@@ -64,8 +132,15 @@ function AutomataBuilder() {
     }
 
     addSymbol(value)
+
     setSymbolInput('')
+
+    setContinueError('')
   }
+
+  /* ======================================
+     AGREGAR TRANSICIÓN
+  ====================================== */
 
   const handleAddTransition = () => {
     setTransitionError('')
@@ -78,26 +153,56 @@ function AutomataBuilder() {
       setTransitionError(
         'Selecciona el estado origen, símbolo y estado destino.'
       )
+
       return
     }
 
-    const added = addTransition({
-      from: transitionFrom,
-      symbol: transitionSymbol,
-      to: transitionTo,
-    })
+    const added =
+      addTransition({
+        from:
+          transitionFrom,
 
+        symbol:
+          transitionSymbol,
+
+        to:
+          transitionTo,
+      })
+
+    /*
+     * En un AFD no puede existir otra
+     * transición para la misma combinación
+     * estado + símbolo.
+     */
     if (!added) {
+      const existingTransition =
+        transitions.find(
+          (transition) =>
+            transition.from ===
+              transitionFrom &&
+            transition.symbol ===
+              transitionSymbol
+        )
+
       setTransitionError(
-        `Ya existe una transición para δ(${transitionFrom}, ${transitionSymbol}).`
+        `Ya existe δ(${transitionFrom}, ${transitionSymbol}) = ${
+          existingTransition?.to ?? ''
+        }. En un AFD no puede existir otro destino para la misma combinación de estado y símbolo.`
       )
+
       return
     }
 
     setTransitionFrom('')
     setTransitionSymbol('')
     setTransitionTo('')
+
+    setContinueError('')
   }
+
+  /* ======================================
+     LIMPIAR AUTÓMATA
+  ====================================== */
 
   const handleReset = () => {
     resetAutomata()
@@ -108,18 +213,165 @@ function AutomataBuilder() {
     setTransitionFrom('')
     setTransitionSymbol('')
     setTransitionTo('')
+
     setTransitionError('')
+    setContinueError('')
   }
+
+  /* ======================================
+     ELIMINAR ESTADO
+  ====================================== */
+
+  const handleRemoveState = (
+    state: string
+  ) => {
+    removeState(state)
+
+    setTransitionError('')
+    setContinueError('')
+  }
+
+  /* ======================================
+     ELIMINAR SÍMBOLO
+  ====================================== */
+
+  const handleRemoveSymbol = (
+    symbol: string
+  ) => {
+    removeSymbol(symbol)
+
+    setTransitionError('')
+    setContinueError('')
+  }
+
+  /* ======================================
+     ELIMINAR TRANSICIÓN
+  ====================================== */
+
+  const handleRemoveTransition = (
+    from: string,
+    symbol: string
+  ) => {
+    removeTransition(
+      from,
+      symbol
+    )
+
+    setTransitionError('')
+    setContinueError('')
+  }
+
+  /* ======================================
+     CAMBIAR ESTADO INICIAL
+  ====================================== */
+
+  const handleInitialStateChange = (
+    state: string
+  ) => {
+    setInitialState(state)
+
+    setContinueError('')
+  }
+
+  /* ======================================
+     CAMBIAR ESTADO FINAL
+  ====================================== */
+
+  const handleFinalStateChange = (
+    state: string
+  ) => {
+    toggleFinalState(state)
+
+    setContinueError('')
+  }
+
+  /* ======================================
+     GUARDAR Y CONTINUAR
+  ====================================== */
+
+  const handleContinue = () => {
+    /*
+     * Validamos que el autómata tenga
+     * los elementos mínimos necesarios
+     * antes de pasar al siguiente módulo.
+     */
+
+    if (states.length === 0) {
+      setContinueError(
+        'Debes agregar al menos un estado.'
+      )
+
+      return
+    }
+
+    if (alphabet.length === 0) {
+      setContinueError(
+        'Debes definir al menos un símbolo del alfabeto.'
+      )
+
+      return
+    }
+
+    if (!initialState) {
+      setContinueError(
+        'Debes seleccionar un estado inicial.'
+      )
+
+      return
+    }
+
+    if (
+      finalStates.length === 0
+    ) {
+      setContinueError(
+        'Debes seleccionar al menos un estado de aceptación.'
+      )
+
+      return
+    }
+
+    if (
+      transitions.length === 0
+    ) {
+      setContinueError(
+        'Debes agregar al menos una transición.'
+      )
+
+      return
+    }
+
+    setContinueError('')
+
+    /*
+     * El autómata ya se encuentra almacenado
+     * mediante Zustand persist.
+     *
+     * Aquí solamente avanzamos al
+     * siguiente módulo.
+     */
+    onContinue()
+  }
+
+  /* ======================================
+     INTERFAZ
+  ====================================== */
 
   return (
     <section className="automata-builder">
+      {/* =================================
+          ENCABEZADO
+      ================================= */}
+
       <div className="automata-builder-heading">
         <div className="automata-builder-icon">
           <Network size={23} />
         </div>
 
         <div>
-          <h1>Construir autómata</h1>
+          <h1>
+            Construir autómata
+          </h1>
+
           <p>
             Define los elementos principales de un Autómata
             Finito Determinístico.
@@ -127,13 +379,21 @@ function AutomataBuilder() {
         </div>
       </div>
 
-      {/* DEFINICIÓN DEL AUTÓMATA */}
+      {/* =================================
+          1. DEFINICIÓN DEL AUTÓMATA
+      ================================= */}
+
       <div className="automata-builder-card">
         <div className="automata-builder-card-title">
-          <span>1</span>
+          <span>
+            1
+          </span>
 
           <div>
-            <h2>Definición del autómata</h2>
+            <h2>
+              Definición del autómata
+            </h2>
+
             <p>
               Configura los estados, el alfabeto y los estados
               especiales del AFD.
@@ -146,25 +406,42 @@ function AutomataBuilder() {
             type="button"
           >
             <RotateCcw size={14} />
+
             Limpiar
           </button>
         </div>
 
         <div className="automata-definition-grid">
-          {/* ESTADOS */}
+          {/* =============================
+              ESTADOS
+          ============================= */}
+
           <div className="automata-field">
-            <label>Estados Q</label>
+            <label>
+              Estados Q
+            </label>
 
             <div className="automata-input-row">
               <input
                 type="text"
                 value={stateInput}
                 placeholder="Ejemplo: q0"
-                onChange={(event) =>
-                  setStateInput(event.target.value)
-                }
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
+                onChange={(
+                  event
+                ) => {
+                  setStateInput(
+                    event.target.value
+                  )
+
+                  setContinueError('')
+                }}
+                onKeyDown={(
+                  event
+                ) => {
+                  if (
+                    event.key ===
+                    'Enter'
+                  ) {
                     handleAddState()
                   }
                 }}
@@ -172,44 +449,63 @@ function AutomataBuilder() {
 
               <button
                 type="button"
-                onClick={handleAddState}
+                onClick={
+                  handleAddState
+                }
               >
                 <Plus size={15} />
+
                 Agregar
               </button>
             </div>
 
             <div className="automata-tags">
-              {states.length === 0 ? (
+              {states.length ===
+              0 ? (
                 <span className="automata-placeholder">
                   Aún no se agregaron estados.
                 </span>
               ) : (
-                states.map((state) => (
-                  <div
-                    className="automata-tag"
-                    key={state}
-                  >
-                    <span>{state}</span>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeState(state)
-                      }
-                      aria-label={`Eliminar ${state}`}
+                states.map(
+                  (state) => (
+                    <div
+                      className="automata-tag"
+                      key={state}
                     >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))
+                      <span>
+                        {state}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleRemoveState(
+                            state
+                          )
+                        }
+                        aria-label={`Eliminar ${state}`}
+                      >
+                        <X
+                          size={
+                            12
+                          }
+                        />
+                      </button>
+                    </div>
+                  )
+                )
               )}
             </div>
           </div>
 
-          {/* ALFABETO */}
+          {/* =============================
+              ALFABETO
+          ============================= */}
+
           <div className="automata-field">
-            <label>Alfabeto Σ</label>
+            <label>
+              Alfabeto Σ
+            </label>
 
             <div className="automata-input-row">
               <input
@@ -217,11 +513,22 @@ function AutomataBuilder() {
                 maxLength={1}
                 value={symbolInput}
                 placeholder="Ejemplo: a"
-                onChange={(event) =>
-                  setSymbolInput(event.target.value)
-                }
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
+                onChange={(
+                  event
+                ) => {
+                  setSymbolInput(
+                    event.target.value
+                  )
+
+                  setContinueError('')
+                }}
+                onKeyDown={(
+                  event
+                ) => {
+                  if (
+                    event.key ===
+                    'Enter'
+                  ) {
                     handleAddSymbol()
                   }
                 }}
@@ -229,64 +536,94 @@ function AutomataBuilder() {
 
               <button
                 type="button"
-                onClick={handleAddSymbol}
+                onClick={
+                  handleAddSymbol
+                }
               >
                 <Plus size={15} />
+
                 Agregar
               </button>
             </div>
 
             <div className="automata-tags">
-              {alphabet.length === 0 ? (
+              {alphabet.length ===
+              0 ? (
                 <span className="automata-placeholder">
                   Aún no se agregaron símbolos.
                 </span>
               ) : (
-                alphabet.map((symbol) => (
-                  <div
-                    className="automata-tag"
-                    key={symbol}
-                  >
-                    <span>{symbol}</span>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeSymbol(symbol)
-                      }
-                      aria-label={`Eliminar ${symbol}`}
+                alphabet.map(
+                  (symbol) => (
+                    <div
+                      className="automata-tag"
+                      key={symbol}
                     >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))
+                      <span>
+                        {symbol}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleRemoveSymbol(
+                            symbol
+                          )
+                        }
+                        aria-label={`Eliminar ${symbol}`}
+                      >
+                        <X
+                          size={
+                            12
+                          }
+                        />
+                      </button>
+                    </div>
+                  )
+                )
               )}
             </div>
           </div>
 
-          {/* ESTADO INICIAL */}
+          {/* =============================
+              ESTADO INICIAL
+          ============================= */}
+
           <div className="automata-field">
-            <label>Estado inicial q₀</label>
+            <label>
+              Estado inicial q₀
+            </label>
 
             <select
               value={initialState}
-              disabled={states.length === 0}
-              onChange={(event) =>
-                setInitialState(event.target.value)
+              disabled={
+                states.length ===
+                0
+              }
+              onChange={(
+                event
+              ) =>
+                handleInitialStateChange(
+                  event.target.value
+                )
               }
             >
               <option value="">
                 Seleccionar estado
               </option>
 
-              {states.map((state) => (
-                <option
-                  key={state}
-                  value={state}
-                >
-                  {state}
-                </option>
-              ))}
+              {states.map(
+                (state) => (
+                  <option
+                    key={state}
+                    value={
+                      state
+                    }
+                  >
+                    {state}
+                  </option>
+                )
+              )}
             </select>
 
             <p className="automata-field-help">
@@ -295,37 +632,53 @@ function AutomataBuilder() {
             </p>
           </div>
 
-          {/* ESTADOS DE ACEPTACIÓN */}
+          {/* =============================
+              ESTADOS DE ACEPTACIÓN
+          ============================= */}
+
           <div className="automata-field">
-            <label>Estados de aceptación F</label>
+            <label>
+              Estados de aceptación F
+            </label>
 
             <div className="automata-state-options">
-              {states.length === 0 ? (
+              {states.length ===
+              0 ? (
                 <span className="automata-placeholder">
                   Primero agrega al menos un estado.
                 </span>
               ) : (
-                states.map((state) => {
-                  const selected =
-                    finalStates.includes(state)
+                states.map(
+                  (state) => {
+                    const selected =
+                      finalStates.includes(
+                        state
+                      )
 
-                  return (
-                    <button
-                      type="button"
-                      key={state}
-                      className={
-                        selected
-                          ? 'automata-state-option selected'
-                          : 'automata-state-option'
-                      }
-                      onClick={() =>
-                        toggleFinalState(state)
-                      }
-                    >
-                      {state}
-                    </button>
-                  )
-                })
+                    return (
+                      <button
+                        type="button"
+                        key={
+                          state
+                        }
+                        className={
+                          selected
+                            ? 'automata-state-option selected'
+                            : 'automata-state-option'
+                        }
+                        onClick={() =>
+                          handleFinalStateChange(
+                            state
+                          )
+                        }
+                      >
+                        {
+                          state
+                        }
+                      </button>
+                    )
+                  }
+                )
               )}
             </div>
 
@@ -335,7 +688,10 @@ function AutomataBuilder() {
           </div>
         </div>
 
-        {/* RESUMEN */}
+        {/* ===============================
+            RESUMEN
+        =============================== */}
+
         <div className="automata-summary">
           <div className="automata-summary-header">
             Representación actual
@@ -349,23 +705,31 @@ function AutomataBuilder() {
             <div className="automata-summary-values">
               <span>
                 Q = {'{ '}
-                {states.join(', ')}
+                {states.join(
+                  ', '
+                )}
                 {' }'}
               </span>
 
               <span>
                 Σ = {'{ '}
-                {alphabet.join(', ')}
+                {alphabet.join(
+                  ', '
+                )}
                 {' }'}
               </span>
 
               <span>
-                q₀ = {initialState || '—'}
+                q₀ ={' '}
+                {initialState ||
+                  '—'}
               </span>
 
               <span>
                 F = {'{ '}
-                {finalStates.join(', ')}
+                {finalStates.join(
+                  ', '
+                )}
                 {' }'}
               </span>
             </div>
@@ -373,13 +737,21 @@ function AutomataBuilder() {
         </div>
       </div>
 
-      {/* GESTIÓN DE TRANSICIONES */}
+      {/* =================================
+          2. GESTIÓN DE TRANSICIONES
+      ================================= */}
+
       <div className="automata-builder-card transition-card">
         <div className="automata-builder-card-title">
-          <span>2</span>
+          <span>
+            2
+          </span>
 
           <div>
-            <h2>Gestión de transiciones</h2>
+            <h2>
+              Gestión de transiciones
+            </h2>
+
             <p>
               Define la función de transición δ del autómata.
             </p>
@@ -387,97 +759,176 @@ function AutomataBuilder() {
         </div>
 
         <div className="transition-form">
+          {/* ESTADO ORIGEN */}
+
           <div className="transition-field">
-            <label>Estado origen</label>
+            <label>
+              Estado origen
+            </label>
 
             <select
-              value={transitionFrom}
-              disabled={states.length === 0}
-              onChange={(event) => {
-                setTransitionFrom(event.target.value)
-                setTransitionError('')
+              value={
+                transitionFrom
+              }
+              disabled={
+                states.length ===
+                0
+              }
+              onChange={(
+                event
+              ) => {
+                setTransitionFrom(
+                  event.target.value
+                )
+
+                setTransitionError(
+                  ''
+                )
               }}
             >
               <option value="">
                 Seleccionar
               </option>
 
-              {states.map((state) => (
-                <option
-                  key={state}
-                  value={state}
-                >
-                  {state}
-                </option>
-              ))}
+              {states.map(
+                (state) => (
+                  <option
+                    key={state}
+                    value={
+                      state
+                    }
+                  >
+                    {
+                      state
+                    }
+                  </option>
+                )
+              )}
             </select>
           </div>
 
+          {/* SÍMBOLO */}
+
           <div className="transition-field">
-            <label>Símbolo</label>
+            <label>
+              Símbolo
+            </label>
 
             <select
-              value={transitionSymbol}
-              disabled={alphabet.length === 0}
-              onChange={(event) => {
-                setTransitionSymbol(event.target.value)
-                setTransitionError('')
+              value={
+                transitionSymbol
+              }
+              disabled={
+                alphabet.length ===
+                0
+              }
+              onChange={(
+                event
+              ) => {
+                setTransitionSymbol(
+                  event.target.value
+                )
+
+                setTransitionError(
+                  ''
+                )
               }}
             >
               <option value="">
                 Seleccionar
               </option>
 
-              {alphabet.map((symbol) => (
-                <option
-                  key={symbol}
-                  value={symbol}
-                >
-                  {symbol}
-                </option>
-              ))}
+              {alphabet.map(
+                (symbol) => (
+                  <option
+                    key={
+                      symbol
+                    }
+                    value={
+                      symbol
+                    }
+                  >
+                    {
+                      symbol
+                    }
+                  </option>
+                )
+              )}
             </select>
           </div>
 
+          {/* ESTADO DESTINO */}
+
           <div className="transition-field">
-            <label>Estado destino</label>
+            <label>
+              Estado destino
+            </label>
 
             <select
-              value={transitionTo}
-              disabled={states.length === 0}
-              onChange={(event) => {
-                setTransitionTo(event.target.value)
-                setTransitionError('')
+              value={
+                transitionTo
+              }
+              disabled={
+                states.length ===
+                0
+              }
+              onChange={(
+                event
+              ) => {
+                setTransitionTo(
+                  event.target.value
+                )
+
+                setTransitionError(
+                  ''
+                )
               }}
             >
               <option value="">
                 Seleccionar
               </option>
 
-              {states.map((state) => (
-                <option
-                  key={state}
-                  value={state}
-                >
-                  {state}
-                </option>
-              ))}
+              {states.map(
+                (state) => (
+                  <option
+                    key={
+                      state
+                    }
+                    value={
+                      state
+                    }
+                  >
+                    {
+                      state
+                    }
+                  </option>
+                )
+              )}
             </select>
           </div>
+
+          {/* AGREGAR */}
 
           <button
             type="button"
             className="add-transition-button"
-            onClick={handleAddTransition}
+            onClick={
+              handleAddTransition
+            }
             disabled={
-              states.length === 0 ||
-              alphabet.length === 0
+              states.length ===
+                0 ||
+              alphabet.length ===
+                0
             }
           >
             <Plus size={15} />
+
             Agregar transición
           </button>
         </div>
+
+        {/* ERROR */}
 
         {transitionError && (
           <div className="transition-error">
@@ -485,8 +936,11 @@ function AutomataBuilder() {
           </div>
         )}
 
+        {/* TABLA */}
+
         <div className="transition-table-wrapper">
-          {transitions.length === 0 ? (
+          {transitions.length ===
+          0 ? (
             <div className="transition-empty">
               Aún no se registraron transiciones.
             </div>
@@ -494,70 +948,158 @@ function AutomataBuilder() {
             <table className="transition-table">
               <thead>
                 <tr>
-                  <th>Estado origen</th>
-                  <th>Símbolo</th>
-                  <th>Estado destino</th>
-                  <th>Función</th>
-                  <th>Acción</th>
+                  <th>
+                    Estado origen
+                  </th>
+
+                  <th>
+                    Símbolo
+                  </th>
+
+                  <th>
+                    Estado destino
+                  </th>
+
+                  <th>
+                    Función
+                  </th>
+
+                  <th>
+                    Acción
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {transitions.map((transition) => (
-                  <tr
-                    key={`${transition.from}-${transition.symbol}`}
-                  >
-                    <td>{transition.from}</td>
-                    <td>{transition.symbol}</td>
-                    <td>{transition.to}</td>
-
-                    <td className="transition-function">
-                      δ({transition.from},{' '}
-                      {transition.symbol}) ={' '}
-                      {transition.to}
-                    </td>
-
-                    <td>
-                      <button
-                        type="button"
-                        className="remove-transition-button"
-                        onClick={() =>
-                          removeTransition(
-                            transition.from,
-                            transition.symbol
-                          )
+                {transitions.map(
+                  (
+                    transition
+                  ) => (
+                    <tr
+                      key={`${transition.from}-${transition.symbol}`}
+                    >
+                      <td>
+                        {
+                          transition.from
                         }
-                        aria-label="Eliminar transición"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      <td>
+                        {
+                          transition.symbol
+                        }
+                      </td>
+
+                      <td>
+                        {
+                          transition.to
+                        }
+                      </td>
+
+                      <td className="transition-function">
+                        δ(
+                        {
+                          transition.from
+                        }
+                        ,{' '}
+                        {
+                          transition.symbol
+                        }
+                        ) ={' '}
+                        {
+                          transition.to
+                        }
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className="remove-transition-button"
+                          onClick={() =>
+                            handleRemoveTransition(
+                              transition.from,
+                              transition.symbol
+                            )
+                          }
+                          aria-label="Eliminar transición"
+                        >
+                          <Trash2
+                            size={
+                              14
+                            }
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           )}
         </div>
       </div>
 
+      {/* =================================
+          3. VISTA PREVIA
+      ================================= */}
 
-        {/* VISTA PREVIA DEL AUTÓMATA */}
-        <div className="automata-builder-card preview-card">
+      <div className="automata-builder-card preview-card">
         <div className="automata-builder-card-title">
-            <span>3</span>
+          <span>
+            3
+          </span>
 
-            <div>
-            <h2>Vista previa del autómata</h2>
+          <div>
+            <h2>
+              Vista previa del autómata
+            </h2>
 
             <p>
-                Representación gráfica de los estados y
-                transiciones definidos.
+              Representación gráfica de los estados y
+              transiciones definidos.
             </p>
-            </div>
+          </div>
         </div>
 
         <AutomataPreview />
+      </div>
+
+      {/* =================================
+          GUARDAR Y CONTINUAR
+      ================================= */}
+
+      <div className="automata-continue-section">
+        <div className="automata-continue-info">
+          <h3>
+            Continuar con el autómata
+          </h3>
+
+          <p>
+            El autómata construido se conservará para utilizarlo
+            en la validación de cadenas.
+          </p>
+
+          {continueError && (
+            <div className="automata-continue-error">
+              {continueError}
+            </div>
+          )}
         </div>
+
+        <button
+          type="button"
+          className="automata-continue-button"
+          onClick={
+            handleContinue
+          }
+        >
+          Guardar y continuar
+
+          <ArrowRight
+            size={16}
+          />
+        </button>
+      </div>
     </section>
   )
 }
