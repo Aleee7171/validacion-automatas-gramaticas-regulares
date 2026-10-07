@@ -46,6 +46,10 @@ function StringValidator({
     transitions,
   } = useAutomataStore()
 
+  /* ======================================
+     ESTADOS DE LA INTERFAZ
+  ====================================== */
+
   const [
     input,
     setInput,
@@ -66,10 +70,12 @@ function StringValidator({
 
   /*
    * currentStep representa la cantidad
-   * de transiciones ya procesadas.
+   * de transiciones que ya fueron
+   * procesadas.
    *
-   * 0 = todavía estamos en q0.
-   * 1 = se procesó el primer símbolo.
+   * 0 = Inicio, todavía estamos en q₀.
+   * 1 = Se procesó el primer símbolo.
+   * 2 = Se procesaron dos símbolos.
    */
   const [
     currentStep,
@@ -87,7 +93,19 @@ function StringValidator({
     finalStates.length > 0
 
   /* ======================================
-     EJEMPLOS
+     CADENA NORMALIZADA
+  ====================================== */
+
+  /*
+   * ε representa la cadena vacía.
+   */
+  const normalizedInput =
+    input === 'ε'
+      ? ''
+      : input
+
+  /* ======================================
+     EJEMPLOS RÁPIDOS
   ====================================== */
 
   const examples =
@@ -120,17 +138,21 @@ function StringValidator({
         values.push(
           `${alphabet[0]}${alphabet[1]}${alphabet[0]}`
         )
+      } else if (
+        alphabet[0]
+      ) {
+        values.push(
+          `${alphabet[0]}${alphabet[0]}`
+        )
       }
 
       return [
-        ...new Set(
-          values
-        ),
+        ...new Set(values),
       ]
     }, [alphabet])
 
   /* ======================================
-     VALIDAR
+     VALIDAR DIRECTAMENTE
   ====================================== */
 
   const handleValidate = () => {
@@ -151,6 +173,10 @@ function StringValidator({
       validation
     )
 
+    /*
+     * Validación directa:
+     * no mostramos navegación paso a paso.
+     */
     setSimulationActive(
       false
     )
@@ -161,7 +187,7 @@ function StringValidator({
   }
 
   /* ======================================
-     SIMULACIÓN
+     INICIAR SIMULACIÓN
   ====================================== */
 
   const handleStartSimulation =
@@ -187,8 +213,21 @@ function StringValidator({
         true
       )
 
+      /*
+       * MUY IMPORTANTE:
+       *
+       * La simulación comienza en 0.
+       * Todavía no se procesa ningún
+       * símbolo.
+       *
+       * El estado resaltado será q₀.
+       */
       setCurrentStep(0)
     }
+
+  /* ======================================
+     SIGUIENTE PASO
+  ====================================== */
 
   const handleNextStep = () => {
     if (!result) {
@@ -204,6 +243,10 @@ function StringValidator({
     )
   }
 
+  /* ======================================
+     PASO ANTERIOR
+  ====================================== */
+
   const handlePreviousStep =
     () => {
       setCurrentStep(
@@ -215,8 +258,16 @@ function StringValidator({
       )
     }
 
+  /* ======================================
+     REINICIAR SIMULACIÓN
+  ====================================== */
+
   const handleRestartSimulation =
     () => {
+      /*
+       * Regresa nuevamente al
+       * estado inicial q₀.
+       */
       setCurrentStep(0)
     }
 
@@ -236,6 +287,10 @@ function StringValidator({
     setCurrentStep(0)
   }
 
+  /* ======================================
+     CAMBIAR CADENA
+  ====================================== */
+
   const handleInputChange = (
     value: string
   ) => {
@@ -251,9 +306,16 @@ function StringValidator({
   }
 
   /* ======================================
-     DATOS DEL PASO ACTUAL
+     PASO EJECUTADO ACTUALMENTE
   ====================================== */
 
+  /*
+   * Cuando currentStep = 0 todavía
+   * no existe una transición ejecutada.
+   *
+   * Cuando currentStep = 1 utilizamos
+   * result.steps[0].
+   */
   const activeStep =
     result &&
     currentStep > 0
@@ -262,6 +324,17 @@ function StringValidator({
         ] ?? null
       : null
 
+  /* ======================================
+     ESTADO ACTUAL
+  ====================================== */
+
+  /*
+   * Inicio:
+   * estado actual = q₀.
+   *
+   * Después de cada paso:
+   * estado actual = estado alcanzado.
+   */
   const currentState =
     currentStep === 0
       ? initialState
@@ -269,7 +342,19 @@ function StringValidator({
         activeStep?.currentState ??
         initialState
 
+  /* ======================================
+     TRANSICIÓN ACTIVA
+  ====================================== */
+
+  /*
+   * En el inicio no resaltamos ninguna
+   * transición.
+   *
+   * Solamente después de ejecutar un
+   * paso se muestra la flecha utilizada.
+   */
   const activeTransition =
+    currentStep > 0 &&
     activeStep
       ? {
           from:
@@ -283,11 +368,35 @@ function StringValidator({
         }
       : null
 
+  /* ======================================
+     SIMULACIÓN FINALIZADA
+  ====================================== */
+
   const simulationFinished =
     Boolean(result) &&
     currentStep >=
       (result?.steps.length ??
         0)
+
+  /* ======================================
+     PRÓXIMO SÍMBOLO
+  ====================================== */
+
+  /*
+   * currentStep también representa
+   * la posición del próximo símbolo
+   * pendiente.
+   */
+  const nextSymbol =
+    !simulationFinished
+      ? normalizedInput[
+          currentStep
+        ] ?? null
+      : null
+
+  /* ======================================
+     PASOS VISIBLES EN LA TABLA
+  ====================================== */
 
   const visibleSteps =
     result
@@ -298,15 +407,6 @@ function StringValidator({
             : result.steps.length
         )
       : []
-
-  /* ======================================
-     CADENA VISUAL
-  ====================================== */
-
-  const normalizedInput =
-    input === 'ε'
-      ? ''
-      : input
 
   /* ======================================
      NO EXISTE AUTÓMATA
@@ -365,6 +465,10 @@ function StringValidator({
       </section>
     )
   }
+
+  /* ======================================
+     INTERFAZ
+  ====================================== */
 
   return (
     <section className="string-validator">
@@ -425,6 +529,8 @@ function StringValidator({
           </button>
         </div>
 
+        {/* RESUMEN */}
+
         <div className="validator-automata-summary">
           <div>
             <span>
@@ -473,16 +579,26 @@ function StringValidator({
           </div>
         </div>
 
+        {/* GRÁFICO */}
+
         <div className="validator-automata-preview">
           <AutomataPreview
             readOnly
 
+            /*
+             * Apenas comienza la
+             * simulación se resalta q₀.
+             */
             highlightState={
               simulationActive
                 ? currentState
                 : null
             }
 
+            /*
+             * En el paso 0 no existe
+             * transición resaltada.
+             */
             highlightTransition={
               simulationActive
                 ? activeTransition
@@ -651,9 +767,15 @@ function StringValidator({
           </div>
         ) : (
           <>
+            {/* =============================
+                PANEL DE SIMULACIÓN
+            ============================= */}
+
             {simulationActive && (
               <div className="validator-simulation-panel">
-                {/* CADENA */}
+                {/* =========================
+                    CADENA
+                ========================= */}
 
                 <div className="simulation-string-block">
                   <span className="simulation-label">
@@ -674,10 +796,19 @@ function StringValidator({
                             symbol,
                             index
                           ) => {
+                            /*
+                             * Verde:
+                             * símbolo ya procesado.
+                             */
                             const processed =
                               index <
                               currentStep
 
+                            /*
+                             * Naranja:
+                             * próximo símbolo que
+                             * será procesado.
+                             */
                             const current =
                               index ===
                                 currentStep &&
@@ -715,23 +846,27 @@ function StringValidator({
                   </div>
                 </div>
 
-                {/* INFORMACIÓN DEL PASO */}
+                {/* =========================
+                    INFORMACIÓN
+                ========================= */}
 
                 <div className="simulation-detail-grid">
+                  {/* PROGRESO */}
+
                   <div>
                     <span>
-                      Paso
+                      Progreso
                     </span>
 
                     <strong>
-                      {currentStep}{' '}
-                      de{' '}
-                      {
-                        result.steps
-                          .length
-                      }
+                      {currentStep ===
+                      0
+                        ? 'Inicio'
+                        : `Paso ${currentStep} de ${result.steps.length}`}
                     </strong>
                   </div>
+
+                  {/* ESTADO ACTUAL */}
 
                   <div>
                     <span>
@@ -745,17 +880,27 @@ function StringValidator({
                     </strong>
                   </div>
 
+                  {/* SÍMBOLO */}
+
                   <div>
                     <span>
-                      Símbolo procesado
+                      {currentStep ===
+                      0
+                        ? 'Próximo símbolo'
+                        : 'Símbolo procesado'}
                     </span>
 
                     <strong>
-                      {activeStep
-                        ? activeStep.symbol
-                        : '—'}
+                      {currentStep ===
+                      0
+                        ? nextSymbol ??
+                          '—'
+                        : activeStep?.symbol ??
+                          '—'}
                     </strong>
                   </div>
+
+                  {/* TRANSICIÓN */}
 
                   <div>
                     <span>
@@ -763,14 +908,18 @@ function StringValidator({
                     </span>
 
                     <strong>
-                      {activeStep
-                        ? activeStep.transition
-                        : 'Inicio del recorrido'}
+                      {currentStep ===
+                      0
+                        ? `Inicio en ${initialState}`
+                        : activeStep?.transition ??
+                          '—'}
                     </strong>
                   </div>
                 </div>
 
-                {/* CONTROLES */}
+                {/* =========================
+                    CONTROLES
+                ========================= */}
 
                 <div className="simulation-navigation">
                   <button
@@ -827,7 +976,9 @@ function StringValidator({
               </div>
             )}
 
-            {/* TABLA */}
+            {/* =============================
+                TABLA
+            ============================= */}
 
             <div className="validator-table-wrapper">
               <table className="validator-table">
@@ -838,7 +989,7 @@ function StringValidator({
                     </th>
 
                     <th>
-                      Estado actual
+                      Estado anterior
                     </th>
 
                     <th>
@@ -850,7 +1001,7 @@ function StringValidator({
                     </th>
 
                     <th>
-                      Nuevo estado
+                      Estado alcanzado
                     </th>
                   </tr>
                 </thead>
@@ -865,8 +1016,9 @@ function StringValidator({
                         }
                         className="validator-table-empty"
                       >
-                        El recorrido aún
-                        no ha comenzado.
+                        {simulationActive
+                          ? `Inicio del recorrido en ${initialState}.`
+                          : 'El recorrido aún no ha comenzado.'}
                       </td>
                     </tr>
                   ) : (
