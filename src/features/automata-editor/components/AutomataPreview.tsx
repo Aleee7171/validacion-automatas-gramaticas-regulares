@@ -26,6 +26,22 @@ import '@xyflow/react/dist/style.css'
 import { useAutomataStore } from '../../../store/automataStore'
 
 /* ========================================
+   PROPIEDADES
+======================================== */
+
+type AutomataPreviewProps = {
+  readOnly?: boolean
+
+  highlightState?: string | null
+
+  highlightTransition?: {
+    from: string
+    symbol: string
+    to: string | null
+  } | null
+}
+
+/* ========================================
    TIPOS
 ======================================== */
 
@@ -33,6 +49,7 @@ type StateNodeData = {
   label: string
   isInitial: boolean
   isFinal: boolean
+  isHighlighted: boolean
 }
 
 type StateNode =
@@ -46,8 +63,10 @@ type Side =
 
 type VisualTransition = {
   key: string
+
   from: string
   to: string
+
   symbols: string[]
 
   sourceSide: Side
@@ -72,7 +91,7 @@ const HANDLE_POSITIONS = [
 ]
 
 /* ========================================
-   HANDLES DEL NODO
+   HANDLES
 ======================================== */
 
 function StateHandles() {
@@ -166,7 +185,7 @@ function StateHandles() {
 }
 
 /* ========================================
-   NODO DEL AUTÓMATA
+   NODO
 ======================================== */
 
 function AutomataStateNode({
@@ -174,9 +193,19 @@ function AutomataStateNode({
 }: NodeProps<StateNode>) {
   return (
     <div
-      className={`afd-graph-node ${
-        data.isFinal ? 'final' : ''
-      }`}
+      className={[
+        'afd-graph-node',
+
+        data.isFinal
+          ? 'final'
+          : '',
+
+        data.isHighlighted
+          ? 'highlighted'
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       {data.isInitial && (
         <span className="afd-initial-indicator">
@@ -200,7 +229,7 @@ const nodeTypes = {
 }
 
 /* ========================================
-   EDGE PERSONALIZADO
+   FLECHA PERSONALIZADA
 ======================================== */
 
 function AutomataEdge({
@@ -225,12 +254,9 @@ function AutomataEdge({
     source === target
 
   let edgePath = ''
+
   let labelX = 0
   let labelY = 0
-
-  /* ======================================
-     BUCLE
-  ====================================== */
 
   if (isLoop) {
     const height = 75
@@ -328,7 +354,7 @@ const edgeTypes = {
 }
 
 /* ========================================
-   DISTRIBUCIÓN AUTOMÁTICA CON DAGRE
+   DISTRIBUCIÓN AUTOMÁTICA
 ======================================== */
 
 function createLayout(
@@ -339,7 +365,8 @@ function createLayout(
     from: string
     symbol: string
     to: string
-  }[]
+  }[],
+  highlightState?: string | null
 ): StateNode[] {
   const graph =
     new dagre.graphlib.Graph()
@@ -359,17 +386,18 @@ function createLayout(
     marginy: 60,
   })
 
-  states.forEach((state) => {
-    graph.setNode(state, {
-      width: 90,
-      height: 90,
-    })
-  })
+  states.forEach(
+    (state) => {
+      graph.setNode(
+        state,
+        {
+          width: 90,
+          height: 90,
+        }
+      )
+    }
+  )
 
-  /*
-   * Los bucles no modifican
-   * la organización del grafo.
-   */
   transitions.forEach(
     (transition) => {
       if (
@@ -399,19 +427,23 @@ function createLayout(
         position: node
           ? {
               x:
-                node.x -
-                45,
+                node.x - 45,
 
               y:
-                node.y -
-                45,
+                node.y - 45,
             }
           : {
               x:
-                120 +
-                index * 180,
+                100 +
+                (index % 4) *
+                  180,
 
-              y: 150,
+              y:
+                100 +
+                Math.floor(
+                  index / 4
+                ) *
+                  150,
             },
 
         data: {
@@ -426,6 +458,10 @@ function createLayout(
             finalStates.includes(
               state
             ),
+
+          isHighlighted:
+            highlightState ===
+            state,
         },
       }
     }
@@ -433,7 +469,7 @@ function createLayout(
 }
 
 /* ========================================
-   DETERMINAR LADO DE LA FLECHA
+   DETERMINAR LADOS
 ======================================== */
 
 function getSides(
@@ -458,9 +494,6 @@ function getSides(
     target.y -
     source.y
 
-  /*
-   * Dirección principalmente horizontal.
-   */
   if (
     Math.abs(dx) >=
     Math.abs(dy)
@@ -484,9 +517,6 @@ function getSides(
     }
   }
 
-  /*
-   * Dirección principalmente vertical.
-   */
   if (dy >= 0) {
     return {
       sourceSide:
@@ -507,7 +537,7 @@ function getSides(
 }
 
 /* ========================================
-   DISTRIBUIR PUNTOS DE CONEXIÓN
+   DISTRIBUIR PUNTOS
 ======================================== */
 
 function getSlot(
@@ -527,7 +557,7 @@ function getSlot(
   const slot =
     Math.round(
       (index * 4) /
-      (total - 1)
+        (total - 1)
     )
 
   return Math.min(
@@ -540,10 +570,16 @@ function getSlot(
 }
 
 /* ========================================
-   COMPONENTE PRINCIPAL
+   COMPONENTE
 ======================================== */
 
-function AutomataPreview() {
+function AutomataPreview({
+  readOnly = false,
+
+  highlightState = null,
+
+  highlightTransition = null,
+}: AutomataPreviewProps) {
   const {
     states,
     initialState,
@@ -565,10 +601,8 @@ function AutomataPreview() {
     )
 
   /*
-   * Mantiene las posiciones colocadas
-   * manualmente por el usuario.
-   *
-   * Solo crea posición para estados nuevos.
+   * Mantiene la posición de los estados
+   * cuando se edita el autómata.
    */
   useEffect(() => {
     setNodes(
@@ -582,10 +616,6 @@ function AutomataPreview() {
                   state
               )
 
-            /*
-             * Si ya existe,
-             * conserva su posición.
-             */
             if (existingNode) {
               return {
                 ...existingNode,
@@ -602,16 +632,14 @@ function AutomataPreview() {
                     finalStates.includes(
                       state
                     ),
+
+                  isHighlighted:
+                    highlightState ===
+                    state,
                 },
               }
             }
 
-            /*
-             * Estado nuevo.
-             *
-             * Se coloca inicialmente
-             * en una cuadrícula sencilla.
-             */
             const column =
               index % 4
 
@@ -647,6 +675,10 @@ function AutomataPreview() {
                   finalStates.includes(
                     state
                   ),
+
+                isHighlighted:
+                  highlightState ===
+                  state,
               },
             }
           }
@@ -656,6 +688,7 @@ function AutomataPreview() {
     states,
     initialState,
     finalStates,
+    highlightState,
     setNodes,
   ])
 
@@ -670,7 +703,8 @@ function AutomataPreview() {
           states,
           initialState,
           finalStates,
-          transitions
+          transitions,
+          highlightState
         )
 
       setNodes(
@@ -679,7 +713,7 @@ function AutomataPreview() {
     }
 
   /* ======================================
-     POSICIONES ACTUALES
+     POSICIONES
   ====================================== */
 
   const positionMap =
@@ -764,7 +798,7 @@ function AutomataPreview() {
     }, [transitions])
 
   /* ======================================
-     CALCULAR CONEXIONES VISUALES
+     TRANSICIONES VISUALES
   ====================================== */
 
   const visualTransitions =
@@ -773,10 +807,6 @@ function AutomataPreview() {
         VisualTransition[] =
         []
 
-      /*
-       * Primero determinamos
-       * los lados generales.
-       */
       Array.from(
         groupedTransitions.values()
       ).forEach(
@@ -787,10 +817,6 @@ function AutomataPreview() {
           const isLoop =
             transition.from ===
             transition.to
-
-          /* ==============================
-             BUCLE
-          ============================== */
 
           if (isLoop) {
             result.push({
@@ -839,10 +865,6 @@ function AutomataPreview() {
               reverseKey
             )
 
-          /* ==============================
-             TRANSICIONES DE IDA Y VUELTA
-          ============================== */
-
           if (hasReverse) {
             const dx =
               target.x -
@@ -866,10 +888,6 @@ function AutomataPreview() {
               fromOrder <
               toOrder
 
-            /*
-             * Estados principalmente
-             * uno al lado del otro.
-             */
             if (
               Math.abs(dx) >=
               Math.abs(dy)
@@ -899,10 +917,6 @@ function AutomataPreview() {
               return
             }
 
-            /*
-             * Estados principalmente
-             * uno encima del otro.
-             */
             result.push({
               key,
 
@@ -927,10 +941,6 @@ function AutomataPreview() {
 
             return
           }
-
-          /* ==============================
-             TRANSICIÓN NORMAL
-          ============================== */
 
           const sides =
             getSides(
@@ -1118,7 +1128,7 @@ function AutomataPreview() {
 
               return (
                 aPosition.x -
-                bPosition.x
+                  bPosition.x
               )
             }
           )
@@ -1146,7 +1156,7 @@ function AutomataPreview() {
     ])
 
   /* ======================================
-     CREAR EDGES
+     EDGES
   ====================================== */
 
   const edges: Edge[] =
@@ -1156,48 +1166,86 @@ function AutomataPreview() {
           (
             transition,
             index
-          ) => ({
-            id:
-              `${transition.key}-${index}`,
+          ) => {
+            const isHighlighted =
+              Boolean(
+                highlightTransition &&
+                  highlightTransition.from ===
+                    transition.from &&
+                  highlightTransition.to ===
+                    transition.to &&
+                  transition.symbols.includes(
+                    highlightTransition.symbol
+                  )
+              )
 
-            source:
-              transition.from,
+            return {
+              id:
+                `${transition.key}-${index}`,
 
-            target:
-              transition.to,
+              source:
+                transition.from,
 
-            sourceHandle:
-              `source-${transition.sourceSide}-${transition.sourceSlot}`,
+              target:
+                transition.to,
 
-            targetHandle:
-              `target-${transition.targetSide}-${transition.targetSlot}`,
+              sourceHandle:
+                `source-${transition.sourceSide}-${transition.sourceSlot}`,
 
-            type:
-              'automata',
+              targetHandle:
+                `target-${transition.targetSide}-${transition.targetSlot}`,
 
-            label:
-              transition.symbols.join(
-                ', '
-              ),
-
-            markerEnd: {
               type:
-                MarkerType.ArrowClosed,
+                'automata',
 
-              width: 18,
+              label:
+                transition.symbols.join(
+                  ', '
+                ),
 
-              height: 18,
-            },
+              markerEnd: {
+                type:
+                  MarkerType.ArrowClosed,
 
-            style: {
-              stroke:
-                '#214f86',
+                width:
+                  isHighlighted
+                    ? 22
+                    : 18,
 
-              strokeWidth: 1.8,
-            },
-          })
+                height:
+                  isHighlighted
+                    ? 22
+                    : 18,
+
+                color:
+                  isHighlighted
+                    ? '#d97706'
+                    : '#214f86',
+              },
+
+              style: {
+                stroke:
+                  isHighlighted
+                    ? '#d97706'
+                    : '#214f86',
+
+                strokeWidth:
+                  isHighlighted
+                    ? 3.2
+                    : 1.8,
+              },
+
+              zIndex:
+                isHighlighted
+                  ? 10
+                  : 1,
+            }
+          }
         ),
-      [visualTransitions]
+      [
+        visualTransitions,
+        highlightTransition,
+      ]
     )
 
   /* ======================================
@@ -1221,22 +1269,30 @@ function AutomataPreview() {
 
   return (
     <div className="automata-preview-wrapper">
-      <div className="automata-preview-toolbar">
-        <span>
-          Puedes mover los estados para ajustar la representación.
-        </span>
+      {!readOnly && (
+        <div className="automata-preview-toolbar">
+          <span>
+            Puedes mover los estados para ajustar la representación.
+          </span>
 
-        <button
-          type="button"
-          onClick={
-            handleReorganize
-          }
-        >
-          Reorganizar
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={
+              handleReorganize
+            }
+          >
+            Reorganizar
+          </button>
+        </div>
+      )}
 
-      <div className="automata-preview-container">
+      <div
+        className={`automata-preview-container ${
+          readOnly
+            ? 'read-only'
+            : ''
+        }`}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -1250,16 +1306,22 @@ function AutomataPreview() {
           }
 
           onNodesChange={
-            onNodesChange
+            readOnly
+              ? undefined
+              : onNodesChange
           }
 
-          nodesDraggable
+          nodesDraggable={
+            !readOnly
+          }
 
           nodesConnectable={
             false
           }
 
-          elementsSelectable
+          elementsSelectable={
+            !readOnly
+          }
 
           fitView
 
@@ -1271,20 +1333,34 @@ function AutomataPreview() {
 
           maxZoom={1.8}
 
-          panOnDrag
+          panOnDrag={
+            !readOnly
+          }
 
-          zoomOnScroll
+          zoomOnScroll={
+            !readOnly
+          }
+
+          zoomOnPinch={
+            !readOnly
+          }
+
+          zoomOnDoubleClick={
+            false
+          }
         >
           <Background
             gap={20}
             size={1}
           />
 
-          <Controls
-            showInteractive={
-              false
-            }
-          />
+          {!readOnly && (
+            <Controls
+              showInteractive={
+                false
+              }
+            />
+          )}
         </ReactFlow>
       </div>
     </div>

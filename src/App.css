@@ -3054,3 +3054,294 @@
     flex-direction: column;
   }
 }
+
+/* =========================================
+   AUTÓMATA CARGADO EN VALIDACIÓN
+========================================= */
+
+.validator-edit-automata {
+  margin-left: auto;
+
+  padding: 7px 11px;
+
+  border: 1px solid #d4dbe4;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #214f86;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.validator-edit-automata:hover {
+  background: #f3f7fb;
+}
+
+.validator-automata-preview {
+  margin-top: 14px;
+}
+
+.validator-automata-preview
+.automata-preview-container {
+  height: 330px;
+}
+
+.automata-preview-container.read-only {
+  cursor: default;
+}
+
+/* =========================================
+   ESTADO ACTIVO EN LA SIMULACIÓN
+========================================= */
+
+.afd-graph-node.highlighted
+.afd-state-circle {
+  border-color: #d97706;
+
+  background: #fff7e6;
+
+  color: #9a5b06;
+
+  box-shadow:
+    0 0 0 5px
+    rgba(217, 119, 6, 0.12);
+}
+
+.afd-graph-node.final.highlighted
+.afd-state-circle::after {
+  border-color: #d97706;
+}
+
+/* =========================================
+   PANEL DE SIMULACIÓN
+========================================= */
+
+.validator-simulation-panel {
+  margin-bottom: 16px;
+
+  padding: 16px;
+
+  border: 1px solid #d9e0e8;
+  border-radius: 10px;
+
+  background: #f8fafc;
+}
+
+/* =========================================
+   CADENA VISUAL
+========================================= */
+
+.simulation-string-block {
+  margin-bottom: 14px;
+}
+
+.simulation-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #687385;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.simulation-string {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+.simulation-symbol {
+  min-width: 29px;
+  height: 29px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #d5dce5;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #667085;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.simulation-symbol.processed {
+  border-color: #9dc4ad;
+
+  background: #eef8f2;
+  color: #287642;
+}
+
+.simulation-symbol.current {
+  border: 2px solid #d97706;
+
+  background: #fff7e6;
+  color: #9a5b06;
+}
+
+.simulation-empty-string {
+  padding: 6px 12px;
+
+  border: 1px solid #d5dce5;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #173f73;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =========================================
+   INFORMACIÓN DEL PASO
+========================================= */
+
+.simulation-detail-grid {
+  display: grid;
+
+  grid-template-columns:
+    0.7fr
+    0.9fr
+    0.9fr
+    2fr;
+
+  gap: 8px;
+
+  margin-bottom: 14px;
+}
+
+.simulation-detail-grid > div {
+  min-height: 61px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 9px 11px;
+
+  border: 1px solid #e0e5eb;
+  border-radius: 7px;
+
+  background: #ffffff;
+}
+
+.simulation-detail-grid span {
+  color: #7b8491;
+
+  font-size: 9px;
+}
+
+.simulation-detail-grid strong {
+  color: #173f73;
+
+  font-size: 11px;
+
+  overflow-wrap: anywhere;
+}
+
+.simulation-state-value {
+  font-size: 14px !important;
+}
+
+/* =========================================
+   NAVEGACIÓN DE LA SIMULACIÓN
+========================================= */
+
+.simulation-navigation {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 7px;
+}
+
+.simulation-navigation button {
+  min-height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 0 10px;
+
+  border: 1px solid #d5dce5;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #214f86;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.simulation-navigation button:hover:not(:disabled) {
+  background: #f3f7fb;
+}
+
+.simulation-navigation
+.simulation-next-button {
+  border-color: #214f86;
+
+  background: #214f86;
+  color: #ffffff;
+}
+
+.simulation-navigation
+.simulation-next-button:hover:not(:disabled) {
+  background: #173f73;
+}
+
+.simulation-navigation button:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+/* =========================================
+   PASO ACTIVO EN LA TABLA
+========================================= */
+
+.validator-table
+.active-validation-step {
+  background: #fff8ea;
+}
+
+.validator-table
+.active-validation-step td {
+  color: #9a5b06;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+  .simulation-detail-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .validator-edit-automata {
+    margin-left: 0;
+  }
+}

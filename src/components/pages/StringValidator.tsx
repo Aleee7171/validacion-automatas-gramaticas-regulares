@@ -1,8 +1,13 @@
-import { useMemo, useState } from 'react'
+import {
+  useMemo,
+  useState,
+} from 'react'
 
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ListChecks,
   Play,
   RotateCcw,
@@ -11,14 +16,24 @@ import {
 
 import { useAutomataStore } from '../../store/automataStore'
 
+import AutomataPreview from '../../features/automata-editor/components/AutomataPreview'
+
 import {
   validateString,
   type ValidationResult,
 } from '../../features/string-validator/logic/validateString'
 
+/* ========================================
+   PROPIEDADES
+======================================== */
+
 type StringValidatorProps = {
   onEditAutomata: () => void
 }
+
+/* ========================================
+   COMPONENTE
+======================================== */
 
 function StringValidator({
   onEditAutomata,
@@ -49,13 +64,20 @@ function StringValidator({
     setSimulationActive,
   ] = useState(false)
 
+  /*
+   * currentStep representa la cantidad
+   * de transiciones ya procesadas.
+   *
+   * 0 = todavía estamos en q0.
+   * 1 = se procesó el primer símbolo.
+   */
   const [
     currentStep,
     setCurrentStep,
   ] = useState(0)
 
   /* ======================================
-     COMPROBAR SI EXISTE AUTÓMATA
+     AUTÓMATA LISTO
   ====================================== */
 
   const automataReady =
@@ -65,14 +87,15 @@ function StringValidator({
     finalStates.length > 0
 
   /* ======================================
-     EJEMPLOS RÁPIDOS
+     EJEMPLOS
   ====================================== */
 
   const examples =
     useMemo(() => {
-      const values: string[] = [
-        'ε',
-      ]
+      const values:
+        string[] = [
+          'ε',
+        ]
 
       if (alphabet[0]) {
         values.push(
@@ -97,21 +120,17 @@ function StringValidator({
         values.push(
           `${alphabet[0]}${alphabet[1]}${alphabet[0]}`
         )
-      } else if (
-        alphabet[0]
-      ) {
-        values.push(
-          `${alphabet[0]}${alphabet[0]}`
-        )
       }
 
       return [
-        ...new Set(values),
+        ...new Set(
+          values
+        ),
       ]
     }, [alphabet])
 
   /* ======================================
-     VALIDAR DIRECTAMENTE
+     VALIDAR
   ====================================== */
 
   const handleValidate = () => {
@@ -128,17 +147,21 @@ function StringValidator({
         transitions
       )
 
-    setResult(validation)
+    setResult(
+      validation
+    )
 
     setSimulationActive(
       false
     )
 
-    setCurrentStep(0)
+    setCurrentStep(
+      validation.steps.length
+    )
   }
 
   /* ======================================
-     INICIAR SIMULACIÓN
+     SIMULACIÓN
   ====================================== */
 
   const handleStartSimulation =
@@ -156,7 +179,9 @@ function StringValidator({
           transitions
         )
 
-      setResult(validation)
+      setResult(
+        validation
+      )
 
       setSimulationActive(
         true
@@ -165,47 +190,43 @@ function StringValidator({
       setCurrentStep(0)
     }
 
-  /* ======================================
-     SIGUIENTE PASO
-  ====================================== */
-
   const handleNextStep = () => {
     if (!result) {
       return
     }
 
-    if (
-      currentStep <
-      result.steps.length
-    ) {
-      setCurrentStep(
-        (value) =>
-          value + 1
-      )
-    }
+    setCurrentStep(
+      (value) =>
+        Math.min(
+          value + 1,
+          result.steps.length
+        )
+    )
   }
-
-  /* ======================================
-     PASO ANTERIOR
-  ====================================== */
 
   const handlePreviousStep =
     () => {
       setCurrentStep(
         (value) =>
           Math.max(
-            0,
-            value - 1
+            value - 1,
+            0
           )
       )
     }
 
+  const handleRestartSimulation =
+    () => {
+      setCurrentStep(0)
+    }
+
   /* ======================================
-     REINICIAR
+     LIMPIAR
   ====================================== */
 
   const handleReset = () => {
     setInput('')
+
     setResult(null)
 
     setSimulationActive(
@@ -214,10 +235,6 @@ function StringValidator({
 
     setCurrentStep(0)
   }
-
-  /* ======================================
-     CAMBIAR CADENA
-  ====================================== */
 
   const handleInputChange = (
     value: string
@@ -234,8 +251,43 @@ function StringValidator({
   }
 
   /* ======================================
-     PASO ACTUAL
+     DATOS DEL PASO ACTUAL
   ====================================== */
+
+  const activeStep =
+    result &&
+    currentStep > 0
+      ? result.steps[
+          currentStep - 1
+        ] ?? null
+      : null
+
+  const currentState =
+    currentStep === 0
+      ? initialState
+      : activeStep?.nextState ??
+        activeStep?.currentState ??
+        initialState
+
+  const activeTransition =
+    activeStep
+      ? {
+          from:
+            activeStep.currentState,
+
+          symbol:
+            activeStep.symbol,
+
+          to:
+            activeStep.nextState,
+        }
+      : null
+
+  const simulationFinished =
+    Boolean(result) &&
+    currentStep >=
+      (result?.steps.length ??
+        0)
 
   const visibleSteps =
     result
@@ -247,46 +299,17 @@ function StringValidator({
         )
       : []
 
-  const simulationFinished =
-    Boolean(result) &&
-    currentStep >=
-      (result?.steps.length ??
-        0)
+  /* ======================================
+     CADENA VISUAL
+  ====================================== */
 
-  const displayedState =
-    useMemo(() => {
-      if (!result) {
-        return initialState
-      }
-
-      if (
-        currentStep === 0
-      ) {
-        return initialState
-      }
-
-      const step =
-        result.steps[
-          Math.min(
-            currentStep - 1,
-            result.steps.length -
-              1
-          )
-        ]
-
-      return (
-        step?.nextState ??
-        step?.currentState ??
-        initialState
-      )
-    }, [
-      result,
-      currentStep,
-      initialState,
-    ])
+  const normalizedInput =
+    input === 'ε'
+      ? ''
+      : input
 
   /* ======================================
-     AUTÓMATA NO DEFINIDO
+     NO EXISTE AUTÓMATA
   ====================================== */
 
   if (!automataReady) {
@@ -305,9 +328,8 @@ function StringValidator({
             </h1>
 
             <p>
-              Valida cadenas y
-              observa su recorrido
-              dentro del AFD.
+              Valida cadenas y observa
+              su recorrido dentro del AFD.
             </p>
           </div>
         </div>
@@ -324,10 +346,10 @@ function StringValidator({
             </h2>
 
             <p>
-              Primero debes definir
-              los estados, alfabeto,
-              estado inicial y
-              estados de aceptación.
+              Primero debes construir
+              el autómata que será
+              utilizado durante la
+              validación.
             </p>
           </div>
 
@@ -337,8 +359,7 @@ function StringValidator({
               onEditAutomata
             }
           >
-            Ir a construir
-            autómata
+            Ir a construir autómata
           </button>
         </div>
       </section>
@@ -364,67 +385,15 @@ function StringValidator({
           </h1>
 
           <p>
-            Ingresa una cadena y
-            revisa su recorrido paso
-            a paso dentro del AFD.
+            Comprueba una cadena y observa
+            cómo es procesada por el
+            autómata.
           </p>
         </div>
       </div>
 
       {/* =================================
-          RESUMEN DEL AUTÓMATA
-      ================================= */}
-
-      <div className="validator-automata-summary">
-        <div>
-          <span>
-            Estados
-          </span>
-
-          <strong>
-            Q = {'{ '}
-            {states.join(', ')}
-            {' }'}
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            Alfabeto
-          </span>
-
-          <strong>
-            Σ = {'{ '}
-            {alphabet.join(', ')}
-            {' }'}
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            Estado inicial
-          </span>
-
-          <strong>
-            q₀ = {initialState}
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            Aceptación
-          </span>
-
-          <strong>
-            F = {'{ '}
-            {finalStates.join(', ')}
-            {' }'}
-          </strong>
-        </div>
-      </div>
-
-      {/* =================================
-          1. INGRESO DE CADENA
+          1. AUTÓMATA CARGADO
       ================================= */}
 
       <div className="validator-card">
@@ -435,21 +404,120 @@ function StringValidator({
 
           <div>
             <h2>
-              Ingreso de cadena
+              Autómata cargado
             </h2>
 
             <p>
-              Escribe una secuencia
-              formada por símbolos
-              pertenecientes al
-              alfabeto del autómata.
+              Este es el AFD que será
+              utilizado para validar las
+              cadenas ingresadas.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="validator-edit-automata"
+            onClick={
+              onEditAutomata
+            }
+          >
+            Editar autómata
+          </button>
+        </div>
+
+        <div className="validator-automata-summary">
+          <div>
+            <span>
+              Estados
+            </span>
+
+            <strong>
+              Q = {'{ '}
+              {states.join(', ')}
+              {' }'}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              Alfabeto
+            </span>
+
+            <strong>
+              Σ = {'{ '}
+              {alphabet.join(', ')}
+              {' }'}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              Estado inicial
+            </span>
+
+            <strong>
+              q₀ = {initialState}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              Aceptación
+            </span>
+
+            <strong>
+              F = {'{ '}
+              {finalStates.join(', ')}
+              {' }'}
+            </strong>
+          </div>
+        </div>
+
+        <div className="validator-automata-preview">
+          <AutomataPreview
+            readOnly
+
+            highlightState={
+              simulationActive
+                ? currentState
+                : null
+            }
+
+            highlightTransition={
+              simulationActive
+                ? activeTransition
+                : null
+            }
+          />
+        </div>
+      </div>
+
+      {/* =================================
+          2. CADENA DE ENTRADA
+      ================================= */}
+
+      <div className="validator-card">
+        <div className="validator-card-title">
+          <span>
+            2
+          </span>
+
+          <div>
+            <h2>
+              Cadena de entrada
+            </h2>
+
+            <p>
+              Ingresa una secuencia
+              utilizando los símbolos
+              definidos en Σ.
             </p>
           </div>
         </div>
 
         <div className="validator-input-section">
           <label>
-            Cadena de entrada
+            Cadena
           </label>
 
           <div className="validator-input-row">
@@ -512,7 +580,7 @@ function StringValidator({
               onClick={
                 handleReset
               }
-              aria-label="Reiniciar validación"
+              title="Limpiar"
             >
               <RotateCcw
                 size={15}
@@ -521,13 +589,10 @@ function StringValidator({
           </div>
 
           <p className="validator-input-help">
-            Para representar la
-            cadena vacía puedes
-            utilizar ε o dejar el
-            campo vacío.
+            Para representar la cadena
+            vacía puedes utilizar ε o dejar
+            el campo vacío.
           </p>
-
-          {/* EJEMPLOS */}
 
           <div className="validator-examples">
             <span>
@@ -556,64 +621,158 @@ function StringValidator({
       </div>
 
       {/* =================================
-          2. RECORRIDO
+          3. SIMULACIÓN
       ================================= */}
 
       <div className="validator-card">
         <div className="validator-card-title">
           <span>
-            2
+            3
           </span>
 
           <div>
             <h2>
-              Recorrido de la cadena
+              Simulación paso a paso
             </h2>
 
             <p>
-              Observa el estado
-              actual, símbolo leído y
-              transición utilizada.
+              Sigue la lectura de la cadena
+              y observa las transiciones
+              utilizadas.
             </p>
           </div>
         </div>
 
         {!result ? (
           <div className="validator-route-empty">
-            Valida una cadena o
-            inicia una simulación
-            para visualizar su
-            recorrido.
+            Ingresa una cadena y selecciona
+            “Iniciar simulación” para
+            observar el recorrido.
           </div>
         ) : (
           <>
-            {/* SIMULACIÓN */}
-
             {simulationActive && (
-              <div className="validator-simulation">
-                <div className="simulation-current-state">
-                  <span>
-                    Estado actual
+              <div className="validator-simulation-panel">
+                {/* CADENA */}
+
+                <div className="simulation-string-block">
+                  <span className="simulation-label">
+                    Cadena
                   </span>
 
-                  <strong>
-                    {
-                      displayedState
-                    }
-                  </strong>
+                  <div className="simulation-string">
+                    {normalizedInput.length ===
+                    0 ? (
+                      <span className="simulation-empty-string">
+                        ε
+                      </span>
+                    ) : (
+                      normalizedInput
+                        .split('')
+                        .map(
+                          (
+                            symbol,
+                            index
+                          ) => {
+                            const processed =
+                              index <
+                              currentStep
+
+                            const current =
+                              index ===
+                                currentStep &&
+                              !simulationFinished
+
+                            return (
+                              <span
+                                key={`${symbol}-${index}`}
+                                className={[
+                                  'simulation-symbol',
+
+                                  processed
+                                    ? 'processed'
+                                    : '',
+
+                                  current
+                                    ? 'current'
+                                    : '',
+                                ]
+                                  .filter(
+                                    Boolean
+                                  )
+                                  .join(
+                                    ' '
+                                  )}
+                              >
+                                {
+                                  symbol
+                                }
+                              </span>
+                            )
+                          }
+                        )
+                    )}
+                  </div>
                 </div>
 
-                <div className="simulation-progress">
-                  Paso{' '}
-                  {currentStep}{' '}
-                  de{' '}
-                  {
-                    result.steps
-                      .length
-                  }
+                {/* INFORMACIÓN DEL PASO */}
+
+                <div className="simulation-detail-grid">
+                  <div>
+                    <span>
+                      Paso
+                    </span>
+
+                    <strong>
+                      {currentStep}{' '}
+                      de{' '}
+                      {
+                        result.steps
+                          .length
+                      }
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      Estado actual
+                    </span>
+
+                    <strong className="simulation-state-value">
+                      {
+                        currentState
+                      }
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      Símbolo procesado
+                    </span>
+
+                    <strong>
+                      {activeStep
+                        ? activeStep.symbol
+                        : '—'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      Transición
+                    </span>
+
+                    <strong>
+                      {activeStep
+                        ? activeStep.transition
+                        : 'Inicio del recorrido'}
+                    </strong>
+                  </div>
                 </div>
 
-                <div className="simulation-controls">
+                {/* CONTROLES */}
+
+                <div className="simulation-navigation">
                   <button
                     type="button"
                     onClick={
@@ -624,11 +783,33 @@ function StringValidator({
                       0
                     }
                   >
-                    ← Anterior
+                    <ChevronLeft
+                      size={15}
+                    />
+
+                    Anterior
                   </button>
 
                   <button
                     type="button"
+                    onClick={
+                      handleRestartSimulation
+                    }
+                    disabled={
+                      currentStep ===
+                      0
+                    }
+                  >
+                    <RotateCcw
+                      size={14}
+                    />
+
+                    Reiniciar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="simulation-next-button"
                     onClick={
                       handleNextStep
                     }
@@ -636,7 +817,11 @@ function StringValidator({
                       simulationFinished
                     }
                   >
-                    Siguiente →
+                    Siguiente
+
+                    <ChevronRight
+                      size={15}
+                    />
                   </button>
                 </div>
               </div>
@@ -680,9 +865,8 @@ function StringValidator({
                         }
                         className="validator-table-empty"
                       >
-                        El recorrido
-                        todavía no ha
-                        comenzado.
+                        El recorrido aún
+                        no ha comenzado.
                       </td>
                     </tr>
                   ) : (
@@ -693,6 +877,13 @@ function StringValidator({
                         <tr
                           key={
                             step.step
+                          }
+                          className={
+                            simulationActive &&
+                            step.step ===
+                              currentStep
+                              ? 'active-validation-step'
+                              : ''
                           }
                         >
                           <td>
@@ -735,7 +926,7 @@ function StringValidator({
       </div>
 
       {/* =================================
-          3. RESULTADO
+          4. RESULTADO
       ================================= */}
 
       {result &&
@@ -768,8 +959,7 @@ function StringValidator({
 
             <div>
               <span>
-                Resultado de la
-                validación
+                Resultado de la validación
               </span>
 
               <h3>
@@ -786,7 +976,9 @@ function StringValidator({
               </h3>
 
               <p>
-                {result.message}
+                {
+                  result.message
+                }
               </p>
             </div>
           </div>
