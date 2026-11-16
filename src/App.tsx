@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { ChevronRight, CircleHelp } from 'lucide-react'
 
@@ -9,6 +10,7 @@ import Home from './components/pages/Home'
 import Theory from './components/pages/Theory'
 import AutomataBuilder from './components/pages/AutomataBuilder'
 import StringValidator from './components/pages/StringValidator'
+import GrammarConverter from './components/pages/GrammarConverter'
 
 import './App.css'
 
@@ -25,7 +27,6 @@ const sectionNames: Record<Section, string> = {
 function App() {
   const [activeSection, setActiveSection] =
     useState<Section>('inicio')
-
   const renderContent = () => {
     switch (activeSection) {
       case 'inicio':
@@ -42,14 +43,24 @@ function App() {
             }
           />
         )
-        case 'validar':
-      return (
-        <StringValidator
-          onEditAutomata={() =>
-            setActiveSection('crear')
-          }
-        />
-      )
+
+      case 'validar':
+        return (
+          <StringValidator
+            onEditAutomata={() =>
+              setActiveSection('crear')
+            }
+          />
+        )
+
+      case 'convertir':
+        return (
+          <GrammarConverter
+            onEditAutomata={() =>
+              setActiveSection('crear')
+            }
+          />
+        )
 
       default:
         return (
@@ -63,7 +74,6 @@ function App() {
         )
     }
   }
-
   return (
     <div className="app-layout">
       <Sidebar

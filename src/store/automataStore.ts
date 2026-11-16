@@ -1,10 +1,19 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+/* ========================================
+   TIPOS
+======================================== */
+
 export interface Transition {
   from: string
   symbol: string
   to: string
+}
+
+export interface NodePosition {
+  x: number
+  y: number
 }
 
 export interface AutomataState {
@@ -14,14 +23,60 @@ export interface AutomataState {
   finalStates: string[]
   transitions: Transition[]
 
-  addState: (state: string) => void
-  removeState: (state: string) => void
+  /*
+   * Posición visual de cada estado.
+   *
+   * Ejemplo:
+   *
+   * {
+   *   q0: { x: 100, y: 150 },
+   *   q1: { x: 300, y: 100 }
+   * }
+   */
+  nodePositions: Record<
+    string,
+    NodePosition
+  >
 
-  addSymbol: (symbol: string) => void
-  removeSymbol: (symbol: string) => void
+  /* ==============================
+     ESTADOS
+  ============================== */
 
-  setInitialState: (state: string) => void
-  toggleFinalState: (state: string) => void
+  addState: (
+    state: string
+  ) => void
+
+  removeState: (
+    state: string
+  ) => void
+
+  /* ==============================
+     ALFABETO
+  ============================== */
+
+  addSymbol: (
+    symbol: string
+  ) => void
+
+  removeSymbol: (
+    symbol: string
+  ) => void
+
+  /* ==============================
+     ESTADO INICIAL Y FINALES
+  ============================== */
+
+  setInitialState: (
+    state: string
+  ) => void
+
+  toggleFinalState: (
+    state: string
+  ) => void
+
+  /* ==============================
+     TRANSICIONES
+  ============================== */
 
   addTransition: (
     transition: Transition
@@ -32,24 +87,56 @@ export interface AutomataState {
     symbol: string
   ) => void
 
+  /* ==============================
+     POSICIONES
+  ============================== */
+
+  setNodePosition: (
+    state: string,
+    position: NodePosition
+  ) => void
+
+  setNodePositions: (
+    positions: Record<
+      string,
+      NodePosition
+    >
+  ) => void
+
+  /* ==============================
+     LIMPIAR
+  ============================== */
+
   resetAutomata: () => void
 }
+
+/* ========================================
+   STORE
+======================================== */
 
 export const useAutomataStore =
   create<AutomataState>()(
     persist(
       (set, get) => ({
         states: [],
+
         alphabet: [],
+
         initialState: '',
+
         finalStates: [],
+
         transitions: [],
+
+        nodePositions: {},
 
         /* ==============================
            ESTADOS
         ============================== */
 
-        addState: (state) => {
+        addState: (
+          state
+        ) => {
           const cleanState =
             state.trim()
 
@@ -57,8 +144,9 @@ export const useAutomataStore =
             return
           }
 
-          const { states } =
-            get()
+          const {
+            states,
+          } = get()
 
           if (
             states.includes(
@@ -76,40 +164,85 @@ export const useAutomataStore =
           })
         },
 
-        removeState: (state) => {
+        removeState: (
+          state
+        ) => {
           const {
             states,
             initialState,
             finalStates,
             transitions,
+            nodePositions,
           } = get()
 
+          /*
+           * Copiamos las posiciones
+           * actuales y eliminamos
+           * la correspondiente al
+           * estado eliminado.
+           */
+          const updatedPositions = {
+            ...nodePositions,
+          }
+
+          delete updatedPositions[
+            state
+          ]
+
           set({
+            /*
+             * Eliminar estado.
+             */
             states:
               states.filter(
                 (item) =>
-                  item !== state
+                  item !==
+                  state
               ),
 
+            /*
+             * Si era estado inicial,
+             * se limpia.
+             */
             initialState:
-              initialState === state
+              initialState ===
+              state
                 ? ''
                 : initialState,
 
+            /*
+             * Se elimina del conjunto
+             * de estados finales.
+             */
             finalStates:
               finalStates.filter(
                 (item) =>
-                  item !== state
+                  item !==
+                  state
               ),
 
+            /*
+             * También se eliminan
+             * las transiciones que
+             * llegan o salen del estado.
+             */
             transitions:
               transitions.filter(
-                (transition) =>
+                (
+                  transition
+                ) =>
                   transition.from !==
                     state &&
                   transition.to !==
                     state
               ),
+
+            /*
+             * Se elimina su posición
+             * gráfica.
+             */
+            nodePositions:
+              updatedPositions,
           })
         },
 
@@ -117,7 +250,9 @@ export const useAutomataStore =
            ALFABETO
         ============================== */
 
-        addSymbol: (symbol) => {
+        addSymbol: (
+          symbol
+        ) => {
           const cleanSymbol =
             symbol.trim()
 
@@ -125,8 +260,9 @@ export const useAutomataStore =
             return
           }
 
-          const { alphabet } =
-            get()
+          const {
+            alphabet,
+          } = get()
 
           if (
             alphabet.includes(
@@ -156,12 +292,20 @@ export const useAutomataStore =
             alphabet:
               alphabet.filter(
                 (item) =>
-                  item !== symbol
+                  item !==
+                  symbol
               ),
 
+            /*
+             * Si eliminamos un símbolo,
+             * también eliminamos sus
+             * transiciones.
+             */
             transitions:
               transitions.filter(
-                (transition) =>
+                (
+                  transition
+                ) =>
                   transition.symbol !==
                   symbol
               ),
@@ -192,6 +336,10 @@ export const useAutomataStore =
             finalStates,
           } = get()
 
+          /*
+           * Si ya es final,
+           * se elimina.
+           */
           if (
             finalStates.includes(
               state
@@ -201,13 +349,18 @@ export const useAutomataStore =
               finalStates:
                 finalStates.filter(
                   (item) =>
-                    item !== state
+                    item !==
+                    state
                 ),
             })
 
             return
           }
 
+          /*
+           * Si no es final,
+           * se agrega.
+           */
           set({
             finalStates: [
               ...finalStates,
@@ -226,7 +379,14 @@ export const useAutomataStore =
           const {
             transitions,
           } = get()
-          
+
+          /*
+           * En un AFD no pueden existir
+           * dos transiciones con la misma
+           * combinación:
+           *
+           * estado origen + símbolo
+           */
           const alreadyExists =
             transitions.some(
               (item) =>
@@ -236,7 +396,9 @@ export const useAutomataStore =
                   transition.symbol
             )
 
-          if (alreadyExists) {
+          if (
+            alreadyExists
+          ) {
             return false
           }
 
@@ -261,7 +423,9 @@ export const useAutomataStore =
           set({
             transitions:
               transitions.filter(
-                (transition) =>
+                (
+                  transition
+                ) =>
                   !(
                     transition.from ===
                       from &&
@@ -273,31 +437,84 @@ export const useAutomataStore =
         },
 
         /* ==============================
+           POSICIÓN DE UN ESTADO
+        ============================== */
+
+        setNodePosition: (
+          state,
+          position
+        ) => {
+          const {
+            nodePositions,
+          } = get()
+
+          set({
+            nodePositions: {
+              ...nodePositions,
+
+              [state]: {
+                x:
+                  position.x,
+
+                y:
+                  position.y,
+              },
+            },
+          })
+        },
+
+        /* ==============================
+           TODAS LAS POSICIONES
+        ============================== */
+
+        setNodePositions: (
+          positions
+        ) => {
+          set({
+            nodePositions:
+              positions,
+          })
+        },
+
+        /* ==============================
            LIMPIAR AUTÓMATA
         ============================== */
 
         resetAutomata: () => {
           set({
             states: [],
+
             alphabet: [],
+
             initialState: '',
+
             finalStates: [],
+
             transitions: [],
+
+            /*
+             * También eliminamos
+             * las posiciones guardadas.
+             */
+            nodePositions: {},
           })
         },
       }),
 
       {
-        /*
-         * Nombre utilizado en
-         * localStorage.
-         */
+        /* ==============================
+           PERSISTENCIA
+        ============================== */
+
         name:
           'autogram-automata',
 
         /*
-         * Solo se guardan los datos
-         * del autómata.
+         * Datos que se guardarán
+         * en localStorage.
+         *
+         * Incluimos también las
+         * posiciones de los estados.
          */
         partialize: (
           state
@@ -316,6 +533,9 @@ export const useAutomataStore =
 
           transitions:
             state.transitions,
+
+          nodePositions:
+            state.nodePositions,
         }),
       }
     )

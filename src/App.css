@@ -3345,3 +3345,411 @@
     margin-left: 0;
   }
 }
+
+
+/* =========================================
+   MÓDULO DE CONVERSIÓN A GRAMÁTICA REGULAR
+========================================= */
+
+.grammar-converter {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+  color: #172033;
+}
+
+/* ENCABEZADO */
+
+.grammar-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.grammar-heading-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  border-radius: 11px;
+  background: #e6eef7;
+  color: #234b78;
+}
+
+.grammar-heading h1 {
+  margin: 0 0 5px;
+  color: #173c68;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.grammar-heading p {
+  margin: 0;
+  color: #687385;
+  font-size: 12px;
+}
+
+/* TARJETAS */
+
+.grammar-card {
+  margin-bottom: 20px;
+  padding: 24px;
+
+  background: #ffffff;
+  border: 1px solid #e0e5eb;
+  border-radius: 12px;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.025);
+}
+
+.grammar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.grammar-title-row h2 {
+  margin: 0 0 6px;
+  color: #173c68;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.grammar-title-row p {
+  margin: 0;
+  color: #7b8491;
+  font-size: 11px;
+}
+
+/* BOTONES */
+
+.grammar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 36px;
+  padding: 9px 14px;
+
+  background: #234b78;
+  color: #ffffff;
+
+  border: 1px solid #234b78;
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.grammar-button:hover {
+  background: #173c68;
+}
+
+.grammar-button-outline {
+  background: #ffffff;
+  color: #234b78;
+  border-color: #d4dbe4;
+}
+
+.grammar-button-outline:hover {
+  background: #f3f7fb;
+}
+
+/* INFORMACIÓN DEL AUTÓMATA Y GRAMÁTICA */
+
+.grammar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grammar-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  min-width: 0;
+  padding: 14px;
+
+  background: #f8fafc;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+}
+
+.grammar-grid span {
+  color: #7b8491;
+  font-size: 11px;
+}
+
+.grammar-grid strong {
+  color: #173c68;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* CORRESPONDENCIA ESTADO - NO TERMINAL */
+
+.grammar-map {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.grammar-map > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+
+  padding: 15px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #f8fafc;
+
+  color: #687385;
+  font-size: 13px;
+}
+
+.grammar-map strong {
+  color: #173c68;
+  font-size: 14px;
+}
+
+/* PRODUCCIONES GRAMATICALES */
+
+.grammar-rules {
+  margin-top: 20px;
+  padding: 8px 18px;
+
+  background: #f8fafc;
+  border: 1px solid #e0e5eb;
+  border-radius: 9px;
+}
+
+.grammar-rule {
+  display: grid;
+  grid-template-columns: 65px 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+
+  padding: 12px 0;
+  border-bottom: 1px solid #e3e8ef;
+
+  font-size: 13px;
+}
+
+.grammar-rule:last-child {
+  border-bottom: none;
+}
+
+.grammar-rule strong {
+  color: #173c68;
+  font-weight: 700;
+}
+
+.grammar-rule span {
+  overflow-wrap: anywhere;
+}
+
+.grammar-rule span:nth-child(2) {
+  color: #234b78;
+  font-weight: 700;
+}
+
+.grammar-note {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+
+  background: #eef4fa;
+  border-left: 3px solid #234b78;
+  border-radius: 5px;
+
+  color: #46617e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* REGLAS Y TABLA DE CONVERSIÓN PASO A PASO */
+
+.grammar-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grammar-method-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.grammar-method-final {
+  border-color: #cfe6db;
+  background: #f5fbf7;
+}
+
+.grammar-method-card > strong {
+  display: block;
+  color: #173c68;
+  font-size: 12px;
+  margin-bottom: 9px;
+}
+
+.grammar-method-final > strong {
+  color: #286849;
+}
+
+.grammar-method-card p {
+  min-height: 42px;
+  margin: 0 0 12px;
+  color: #596779;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.grammar-method-card code {
+  display: inline-block;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #173c68;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: normal;
+}
+
+.grammar-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e0e5eb;
+  border-radius: 8px;
+}
+
+.grammar-table-scroll:focus-visible {
+  outline: 2px solid #234b78;
+  outline-offset: 2px;
+}
+
+.grammar-steps-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 11px;
+}
+
+.grammar-steps-table th {
+  padding: 12px 10px;
+  background: #234b78;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.grammar-steps-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e7ecf2;
+  color: #455369;
+  vertical-align: middle;
+}
+
+.grammar-steps-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.grammar-steps-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.grammar-generated-production {
+  color: #173c68 !important;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.grammar-empty-steps {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #687385;
+  font-size: 12px;
+}
+
+/* MENSAJES DE ERROR */
+
+.grammar-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  padding: 13px;
+  margin: 0 0 16px;
+
+  border: 1px solid #f1d4d4;
+  border-radius: 8px;
+  background: #fff5f5;
+
+  color: #b42318;
+  font-size: 12px;
+}
+
+/* DISEÑO RESPONSIVO */
+
+@media (max-width: 900px) {
+  .grammar-converter {
+    padding: 18px;
+  }
+
+  .grammar-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .grammar-heading {
+    align-items: flex-start;
+  }
+
+  .grammar-heading h1 {
+    font-size: 19px;
+  }
+
+  .grammar-card {
+    padding: 16px;
+  }
+
+  .grammar-grid,
+  .grammar-map {
+    grid-template-columns: 1fr;
+  }
+
+  .grammar-rule {
+    grid-template-columns: 40px 20px minmax(0, 1fr);
+  }
+
+  .grammar-method-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Producciones gramaticales en filas separadas */
+
+.grammar-rules {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+}

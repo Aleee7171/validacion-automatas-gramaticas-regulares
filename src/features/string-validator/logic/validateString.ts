@@ -1,7 +1,7 @@
 import type { Transition } from '../../../store/automataStore'
 
 /* ========================================
-   TIPOS
+TIPOS
 ======================================== */
 
 export type ValidationStatus =
